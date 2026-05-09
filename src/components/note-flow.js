@@ -69,6 +69,13 @@ export function resolveNoteHits(game, nowTs) {
     : 0;
   const noteIsHitInGraceWindow = (note) => {
     if (note.assistOk) return true;
+    if (
+      game.play_mode === "use-the-tap" &&
+      game.tapActiveDir === note.targetDir &&
+      game.isDirectionActive(note.targetDir)
+    ) {
+      return true;
+    }
     const inPostWindow = nowTs <= note.hitTs + graceMs;
     if (inPostWindow && game.isDirectionActive(note.targetDir)) return true;
     const lastActivatedTs = game.lastDirectionActivatedTs?.get(note.targetDir);
