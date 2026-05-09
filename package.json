@@ -1,0 +1,23 @@
+{
+  "name": "spa-ai",
+  "version": "1.0.0",
+  "description": "AI-First SPA: a single-page application starter with rigid state management patterns for AI Agents to follow",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "lint": "eslint . --ext .js",
+    "lint:fix": "eslint . --ext .js --fix",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write .",
+    "verify": "npm run lint && npm run format",
+    "build": "echo 'No build needed'"
+  },
+  "devDependencies": {
+    "eslint": "^10.3.0",
+    "prettier": "^3.8.3"
+  },
+  "dependencies": {
+    "vercel": "^53.2.0"
+  }
+}
