@@ -160,11 +160,11 @@ export class HanSoloistGame extends HTMLElement {
     this.isSingleLevelMode = false;
     this.score = 0;
     this.streak = 0;
-    this.scoreBasePerNote = 10;
+    this.scoreBasePerNote = 1;
     this.scoreStreakStepEvery = 8;
-    this.scoreStreakStepAmount = 5;
-    this.scoreMaxPerNote = 1000;
-    this.scoreForceModeThreshold = 80;
+    this.scoreStreakStepAmount = 2;
+    this.scoreMaxPerNote = 444;
+    this.scoreForceModeThreshold = 44;
     this.powerMode = false;
     this.powerModeLabelStartTs = 0;
     this.powerModeLabelFadeMs = 5000;
@@ -227,6 +227,7 @@ export class HanSoloistGame extends HTMLElement {
       ["DOWN", 0.6],
       ["LEFT", 0.6]
     ]);
+    this.edgeGlowEnabled = false;
     // Stronger punch, faster fade.
     this.edgeGlowHalfLifeMs = 340;
     this.edgeGlowKick = 6.0;

@@ -314,6 +314,7 @@ export function isDirectionActive(game, dir) {
 }
 
 export function kickEdgeGlow(game, dir) {
+  if (!game.edgeGlowEnabled) return;
   if (!game.edgeGlow) return;
   game.edgeGlowBursts ??= [];
   const spawnBurst = (edge, baseScale, color) => {
@@ -355,6 +356,7 @@ export function kickEdgeGlow(game, dir) {
 }
 
 export function decayEdgeGlow(game, dtMs) {
+  if (!game.edgeGlowEnabled) return;
   if (!game.edgeGlow) return;
   const configuredHalfLife = Math.max(1, game.edgeGlowHalfLifeMs || 220);
   // Speed up tail decay so long streaks don't pin the glow at a flat plateau.
