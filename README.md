@@ -1,3 +1,3 @@
-# Han Soloist
+# beep-box
 
-Conduct a **Synthony** of music using **The Force**!
+An open source music game made by Dave Alger with love
