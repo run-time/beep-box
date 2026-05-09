@@ -162,19 +162,19 @@ export class HanSoloistGame extends HTMLElement {
     this.streak = 0;
     this.scoreBasePerNote = 1;
     this.scoreStreakStepEvery = 8;
-    this.scoreStreakStepAmount = 2;
+    this.scoreStreakStepAmount = 1;
     this.scoreMaxPerNote = 444;
-    this.scoreForceModeThreshold = 44;
+    this.scoreForceModeThreshold = 22;
     this.powerMode = false;
     this.powerModeLabelStartTs = 0;
     this.powerModeLabelFadeMs = 5000;
-    this.powerModeLabel = "POWER MODE";
+    this.powerModeLabel = "USE THE FORCE";
     this.scorePopups = [];
     this.scorePulseStartTs = 0;
     this.scorePulseMs = 650;
-    this.scorePopupGrowthScale = 1.2;
-    this.scorePopupVerticalDriftScale = 0.4;
-    this.scorePopupHorizontalDriftScale = 0.4;
+    this.scorePopupGrowthScale = 1.4;
+    this.scorePopupVerticalDriftScale = 0.5;
+    this.scorePopupHorizontalDriftScale = 0.7;
     this.targetBoxStrokeWidth = 6;
     this.noteStrokeWidth = 4;
     this.captureEffects = [];
@@ -1279,6 +1279,7 @@ export class HanSoloistGame extends HTMLElement {
     }
 
     if (!skipBannerAndCountdown && this.gameState === "countdown") {
+      drawOverlay(this, ctx, { dx, dy, dw, dh });
       drawCountdown(this, ctx, layout, nowTs - this.countdownStartTs);
     }
 

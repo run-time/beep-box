@@ -173,8 +173,9 @@ export function resolveNoteHits(game, nowTs) {
 
   for (const note of resolving) {
     if (note.resolved) continue;
+    if (nowTs < note.hitTs + graceMs) continue;
     note.resolved = true;
-    if (note.assistOk) {
+    if (noteIsHitInGraceWindow(note)) {
       note.hit = true;
       note.captureAnimStartTs = nowTs;
       spawnCaptureEffect(game, note, nowTs);
@@ -238,11 +239,11 @@ export function spawnScorePopups(game, group, perNotePoints, nowTs) {
   }
   const popupTtlMs = Math.max(60, game.captureEffectDurationMs * 1.2);
   const forcePopupByDir = {
-    UP: "#3C096C",
-    RIGHT: "#5A189A",
-    DOWN: "#7B2CBF",
+    UP: "#9D4EDD",
+    RIGHT: "#9D4EDD",
+    DOWN: "#9D4EDD",
     LEFT: "#9D4EDD",
-    MIDDLE: "#7B2CBF"
+    MIDDLE: "#9D4EDD"
   };
   for (const {
     dir,
@@ -251,7 +252,7 @@ export function spawnScorePopups(game, group, perNotePoints, nowTs) {
     amount
   } of byDirHalfAndDrift.values()) {
     const dirColor = game.powerMode
-      ? forcePopupByDir[dir] || "#7B2CBF"
+      ? forcePopupByDir[dir] || "#9D4EDD"
       : game.colors[dir] || "#ffffff";
     game.scorePopups.push({
       dir,
@@ -395,7 +396,7 @@ export function spawnCaptureEffect(game, note, nowTs) {
     MIDDLE: "#7B2CBF"
   };
   const color = game.powerMode
-    ? forceRingByDir[note.targetDir] || "#7B2CBF"
+    ? forceRingByDir[note.targetDir] || "#9D4EDD"
     : game.colors[note.targetDir] || "#00ffd5";
   const wavePoints = 42;
   const waveProfile = Array.from(
