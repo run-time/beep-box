@@ -54,7 +54,7 @@ export class HanSoloistGame extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
-    this.GAME_MODE = "prod"; // 'prod' | 'stage' | 'test' | 'dev' | 'dev-mouse' | 'dev-keyboard' | 'dev-video' | 'dev-auto' | 'dev-record'
+    this.GAME_MODE = "stage"; // 'prod' | 'stage' | 'test' | 'dev' | 'dev-mouse' | 'dev-keyboard' | 'dev-video' | 'dev-auto' | 'dev-record'
     this.play_mode = "use-the-mouse";
     this.tapHoldMs = 260;
     this.tapActiveUntilTs = 0;
@@ -303,18 +303,17 @@ export class HanSoloistGame extends HTMLElement {
       .title-level-bar {
         position: absolute;
         left: 50%;
-        bottom: 14px;
+        top: 40px;
         transform: translateX(-50%);
         display: flex;
         gap: 10px;
         padding: 10px 12px;
-        background: rgba(0, 0, 0, 0.75);
-        border-radius: 999px;
+        background: rgba(111, 111, 111, 0.3);
         border: 2px solid rgba(255, 255, 255, 0.15);
         pointer-events: auto;
         flex-wrap: wrap;
         justify-content: center;
-        max-width: min(95vw, 900px);
+        width: 70vw;
       }
 
       .title-mode-bar {
@@ -325,7 +324,7 @@ export class HanSoloistGame extends HTMLElement {
         display: flex;
         gap: 0;
         padding: 12px 24px;
-        background: #fff;
+        background: rgba(255, 255, 255, 0.8);
         border-radius: 36px;
         border: none;
         box-shadow: 0 2px 24px 0 rgba(0,0,0,0.10);
@@ -351,9 +350,15 @@ export class HanSoloistGame extends HTMLElement {
         margin-right: 32px;
       }
 
+      @media (pointer: coarse) {
+        .title-mode-choices {
+          margin-right: 0;
+        }
+      }
+
       .mode-btn {
         appearance: none;
-        border: 3px solid transparent;
+        border: 2px solid transparent;
         border-radius: 18px;
         background: transparent;
         color: #111;
@@ -369,7 +374,7 @@ export class HanSoloistGame extends HTMLElement {
       .mode-btn.active {
         background: #fff;
         color: #111;
-        border: 3px solid #111;
+        border: 2px solid #111;
         box-shadow: none;
       }
 
@@ -381,8 +386,9 @@ export class HanSoloistGame extends HTMLElement {
         color: #111;
         font-family: sans-serif;
         padding: 12px 36px;
+        margin: 8px auto;
         cursor: pointer;
-        box-shadow: 0 2px 8px 0 rgba(0,0,0,0.10);
+        box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.30);
       }
 
       .title-level-bar button {
@@ -411,15 +417,14 @@ export class HanSoloistGame extends HTMLElement {
         right: 12px;
         width: 48px;
         height: 48px;
-        border: 1px solid rgba(255, 255, 255, 0.65);
-        border-radius: 999px;
-        background: rgba(0, 0, 0, 0.24);
+        background: black;
+        border: 0;
         color: #ffffff;
         display: none;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        opacity: 0.36;
+        opacity: 0.4;
         transition:
           opacity 120ms ease,
           background-color 120ms ease,
@@ -427,10 +432,6 @@ export class HanSoloistGame extends HTMLElement {
           border-color 120ms ease,
           box-shadow 120ms ease;
         pointer-events: auto;
-        backdrop-filter: blur(2px);
-        box-shadow:
-          0 0 0 1px rgba(0, 0, 0, 0.55),
-          0 2px 10px rgba(0, 0, 0, 0.35);
       }
 
       .reset-level-btn:hover {
@@ -438,9 +439,6 @@ export class HanSoloistGame extends HTMLElement {
         background: rgba(0, 0, 0, 0.42);
         border-color: rgba(255, 255, 255, 0.92);
         transform: scale(1.04);
-        box-shadow:
-          0 0 0 1px rgba(0, 0, 0, 0.75),
-          0 4px 14px rgba(0, 0, 0, 0.5);
       }
 
       .reset-level-btn:active {
@@ -451,9 +449,6 @@ export class HanSoloistGame extends HTMLElement {
         width: 28px;
         height: 28px;
         fill: currentColor;
-        filter:
-          drop-shadow(0 0 1px rgba(0, 0, 0, 0.95))
-          drop-shadow(0 0 1px rgba(255, 255, 255, 0.75));
       }
     `;
     this.titleScreen.className = "title";
@@ -542,61 +537,76 @@ export class HanSoloistGame extends HTMLElement {
       {
         mode: "use-the-force",
         label: "FORCE"
-      },
-      {
-        mode: "use-the-mouse",
-        label: "MOUSE"
-      },
-      {
-        mode: "use-the-arrows",
-        label: "KEYBOARD"
       }
     ];
-    if (!mobile) {
-      this.titleModeBar.style.display = "";
-      const label = document.createElement("span");
-      label.className = "title-mode-label";
-      label.textContent = "USE THE";
-      this.titleModeBar.appendChild(label);
-
-      const modeChoices = document.createElement("div");
-      modeChoices.className = "title-mode-choices";
-      for (const m of modeDefs) {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = `mode-btn${this.play_mode === m.mode ? " active" : ""}`;
-        btn.textContent = m.label;
-        btn.addEventListener(
-          "click",
-          (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            this.setPlayMode(m.mode);
-            this.renderTitleLevelButtons();
-          },
-          { passive: false }
-        );
-        modeChoices.appendChild(btn);
+    if (mobile) {
+      modeDefs.push({
+        mode: "use-the-tap",
+        label: "TAP"
+      });
+      if (
+        this.play_mode !== "use-the-force" &&
+        this.play_mode !== "use-the-tap"
+      ) {
+        this.setPlayMode("use-the-tap");
       }
-      this.titleModeBar.appendChild(modeChoices);
+    } else {
+      modeDefs.push(
+        {
+          mode: "use-the-mouse",
+          label: "MOUSE"
+        },
+        {
+          mode: "use-the-arrows",
+          label: "KEYBOARD"
+        }
+      );
+    }
 
-      const startBtn = document.createElement("button");
-      startBtn.type = "button";
-      startBtn.className = "title-start-btn";
-      startBtn.textContent = "START";
-      startBtn.addEventListener(
+    this.titleModeBar.style.display = "";
+    const label = document.createElement("span");
+    label.className = "title-mode-label";
+    label.textContent = "USE THE";
+    this.titleModeBar.appendChild(label);
+
+    const modeChoices = document.createElement("div");
+    modeChoices.className = "title-mode-choices";
+    for (const m of modeDefs) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = `mode-btn${this.play_mode === m.mode ? " active" : ""}`;
+      btn.textContent = m.label;
+      btn.addEventListener(
         "click",
         (e) => {
           e.preventDefault();
           e.stopPropagation();
-          void this.startFromTitleSelection();
+          this.setPlayMode(m.mode);
+          if (m.mode === "use-the-force") {
+            void this.startCamera();
+          }
+          this.renderTitleLevelButtons();
         },
         { passive: false }
       );
-      this.titleModeBar.appendChild(startBtn);
-    } else {
-      this.titleModeBar.style.display = "none";
+      modeChoices.appendChild(btn);
     }
+    this.titleModeBar.appendChild(modeChoices);
+
+    const startBtn = document.createElement("button");
+    startBtn.type = "button";
+    startBtn.className = "title-start-btn";
+    startBtn.textContent = "START";
+    startBtn.addEventListener(
+      "click",
+      (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        void this.startFromTitleSelection();
+      },
+      { passive: false }
+    );
+    this.titleModeBar.appendChild(startBtn);
 
     if (this.GAME_MODE === "prod") {
       this.titleLevelBar.style.display = "none";
@@ -634,8 +644,8 @@ export class HanSoloistGame extends HTMLElement {
     this.canvas.style.display = "";
     if (this.titleLevelBar) this.titleLevelBar.style.display = "none";
     if (this.titleModeBar) this.titleModeBar.style.display = "none";
-    this.startCamera();
     await this.startNewRun(nowTs);
+    this.startGameLoop();
   }
 
   async startSingleLevelFromTitle(level) {
@@ -657,6 +667,7 @@ export class HanSoloistGame extends HTMLElement {
     this.isSingleLevelMode = true;
     this.score = 0;
     this.startLevelFlow(nowTs);
+    this.startGameLoop();
   }
 
   onMouseMove(e) {
@@ -674,11 +685,8 @@ export class HanSoloistGame extends HTMLElement {
     const nowTs = performance.now();
     if (this.gameState === "title") {
       const mobile = this.isMobileDevice();
-      if (!mobile) {
-        return;
-      }
       if (mobile) {
-        this.setPlayMode("use-the-tap");
+        return;
       }
       this.unlockAudio();
       this.titleScreen.style.display = "none";
@@ -742,6 +750,10 @@ export class HanSoloistGame extends HTMLElement {
 
   isMobileDevice() {
     if (window.matchMedia?.("(pointer: coarse)").matches) return true;
+    if (window.matchMedia?.("(any-pointer: coarse)").matches) return true;
+    if (window.matchMedia?.("(hover: none)").matches) return true;
+    if ((navigator.maxTouchPoints || 0) > 0) return true;
+    if (navigator.userAgentData?.mobile) return true;
     return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
   }
 
@@ -771,6 +783,12 @@ export class HanSoloistGame extends HTMLElement {
       intensity: prevIntensity
     });
     this.primaryDirection = null;
+  }
+
+  clearAllDirections() {
+    this.primaryDirection = null;
+    this.activeDirStates.clear();
+    this.lastDirectionActivatedTs?.clear();
   }
 
   mapKeyToDirection(key) {
@@ -841,10 +859,15 @@ export class HanSoloistGame extends HTMLElement {
       dh: this.canvas.height
     });
     const dir = this.getDirectionFromPoint(layout, x, y);
-    if (!dir) return;
     const nowTs = performance.now();
+    if (!dir) {
+      this.tapActiveDir = null;
+      this.tapActiveUntilTs = 0;
+      this.clearAllDirections();
+      return;
+    }
     this.tapActiveDir = dir;
-    this.tapActiveUntilTs = nowTs + this.tapHoldMs;
+    this.tapActiveUntilTs = 0;
     this.selectDirection(dir, nowTs);
   }
 
@@ -949,13 +972,18 @@ export class HanSoloistGame extends HTMLElement {
       this.video.srcObject = this.stream;
       this.video.onloadedmetadata = () => {
         this.video.play();
-        this.processFrame();
+        this.startGameLoop();
       };
     } catch (e) {
       // Optionally show error overlay
       // Still run the render loop so non-video gameplay continues.
-      if (!this.animationFrame) this.processFrame();
+      this.startGameLoop();
     }
+  }
+
+  startGameLoop() {
+    if (this.animationFrame) return;
+    this.processFrame();
   }
 
   stopCamera() {
@@ -1051,11 +1079,8 @@ export class HanSoloistGame extends HTMLElement {
       if (held.length) this.selectDirection(held[held.length - 1], nowTs);
       else this.selectDirection("MIDDLE", nowTs);
     } else if (this.play_mode === "use-the-tap") {
-      if (this.tapActiveDir && nowTs <= this.tapActiveUntilTs) {
+      if (this.tapActiveDir) {
         this.selectDirection(this.tapActiveDir, nowTs);
-      } else if (this.tapActiveDir) {
-        this.tapActiveDir = null;
-        this.clearPrimaryDirection(nowTs);
       }
     }
 

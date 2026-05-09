@@ -18,6 +18,6 @@
     "prettier": "^3.8.3"
   },
   "dependencies": {
-    "vercel": "^53.2.0"
+    "vercel": "^50.41.0"
   }
 }
