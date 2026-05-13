@@ -68,11 +68,7 @@
       }
 
       .effects-container {
-        margin-top: 0.75em;
-        border: 1px solid #444;
-        border-radius: 8px;
-        padding: 0.6em;
-        max-width: 400px;
+        display: inline-block;
       }
 
       .bold-label {
@@ -302,16 +298,61 @@
         <button id="playBtn" title="Play/Pause">⏵</button>
         <button id="nextBtn" type="button" title="Next">⇢</button>
         <button id="endBtn" type="button" title="End">⏭</button>
-        <button id="insertNotesBtn" type="button">Assign Lanes</button>
-        <button id="clearNotesBtn" type="button">Clear Notes</button>
-        <button id="sortBtn" type="button">Cleanse</button>
       </div>
     </div>
 
     <details>
+      <summary>Game Preview & Lane Assignments</summary>
+      <div id="gameArea" aria-label="Game Area">
+        <div id="gameAreaControls" style="margin-bottom:8px">
+          <button id="insertNotesBtn" type="button">Assign All</button>
+          <button id="clearNotesBtn" type="button">Clear All</button>
+        </div>
+        <div id="gameAreaInner">
+          <div
+            style="
+              display: flex;
+              flex-direction: column;
+              justify-content: flex-start;
+            "
+          >
+            <canvas
+              id="gameCanvas"
+              style="width: 400px; height: 300px"
+            ></canvas>
+          </div>
+          <div
+            style="
+              display: flex;
+              flex-direction: row;
+              justify-content: flex-start;
+            "
+          >
+            <div>
+              <div id="lanePreview"></div>
+              <div id="laneInfo">
+                Select a note row to preview/edit its lane.
+              </div>
+            </div>
+            <div
+              style="
+                padding: 0 16px;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+              "
+            >
+              <div id="laneButtons"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <details>
       <summary>Effects</summary>
       <div id="effectsSection" class="effects-container modifier-container">
-        <div class="modifier-row">
+        <div class="modifier-row" style="margin-bottom:8px">
           <label for="enablePlaybackEffects" style="font-weight: 600"
             >Enable Playback Effects</label
           >
@@ -413,6 +454,7 @@
           </div>
 
           <input id="fxDelayEnabled" type="checkbox" />
+
           <label for="delayTime"
             >Delay Time <span id="delayTimeVal">8/64</span></label
           >
@@ -669,7 +711,8 @@
         </div>
         <div class="modifier-row">
           <button id="insertEffectsBtn" type="button">Insert Effects</button>
-          <button id="resetEffectsBtn" type="button">Reset</button>
+          <button id="resetEffectsBtn" type="button">Reset Effects</button>
+          <button id="sortBtn" type="button">Cleanse</button>
         </div>
       </div>
     </details>
@@ -711,49 +754,6 @@
       </div>
     </details>
 
-    <details>
-      <summary>Game Preview & Lane Assignment</summary>
-      <div id="gameArea" aria-label="Game Area">
-        <div id="gameAreaInner">
-          <div
-            style="
-              display: flex;
-              flex-direction: column;
-              justify-content: flex-start;
-            "
-          >
-            <canvas
-              id="gameCanvas"
-              style="width: 400px; height: 300px"
-            ></canvas>
-          </div>
-          <div
-            style="
-              display: flex;
-              flex-direction: row;
-              justify-content: flex-start;
-            "
-          >
-            <div>
-              <div id="lanePreview"></div>
-              <div id="laneInfo">
-                Select a note row to preview/edit its lane.
-              </div>
-            </div>
-            <div
-              style="
-                padding: 0 16px;
-                display: flex;
-                flex-direction: column;
-                justify-content: flex-start;
-              "
-            >
-              <div id="laneButtons"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </details>
 
     <script src="https://unpkg.com/tone@next/build/Tone.js"></script>
     <script src="https://nbrosowsky.github.io/tonejs-instruments/Tonejs-Instruments.js"></script>
