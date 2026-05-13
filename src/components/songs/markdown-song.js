@@ -11,23 +11,171 @@ function parsePipeRow(line) {
   return cells;
 }
 
+// --- Effect helpers ---
+export function cloneEffects(effects) {
+  return effects ? JSON.parse(JSON.stringify(effects)) : null;
+}
+
+export function normalizeEffects(effects) {
+  // Fill in missing fields with defaults.
+  if (!effects) return null;
+  const out = {
+    release: effects.release,
+    reverb: effects.reverb ? { ...effects.reverb } : undefined,
+    filter: effects.filter ? { ...effects.filter } : undefined,
+    delay: effects.delay ? { ...effects.delay } : undefined
+  };
+  // Remove undefined sections
+  Object.keys(out).forEach((k) => {
+    if (!out[k]) delete out[k];
+  });
+  return Object.keys(out).length ? out : null;
+}
+
+function parseEffectValueToken(token) {
+  // e.g. decay_7.0, wet_0.65, frequency_1400
+  const [k, v] = token.split("_");
+  if (!k || v === undefined) return null;
+  const num = Number(v);
+  return { key: k, value: Number.isFinite(num) ? num : v };
+}
+
+function parseEffectDirectiveRow(cells, prevEffects) {
+  // cells: [ '', 'effect', ... ]
+  let effects = cloneEffects(prevEffects) || {};
+  let changed = false;
+  for (let i = 2; i < cells.length; ++i) {
+    const token = (cells[i] || "").toLowerCase();
+    if (!token) continue;
+    if (token === "default") {
+      // Reset to default (clear all)
+      effects = {};
+      changed = true;
+      continue;
+    }
+    if (token === "reverb") {
+      effects.reverb = effects.reverb || {};
+      changed = true;
+      continue;
+    }
+    if (token === "release") {
+      effects.release = effects.release || {};
+      changed = true;
+      continue;
+    }
+    if (token === "lowpass" || token === "filter") {
+      effects.filter = { type: "lowpass" };
+      changed = true;
+      continue;
+    }
+    if (token === "highpass") {
+      effects.filter = { type: "highpass" };
+      changed = true;
+      continue;
+    }
+    if (token === "delay") {
+      effects.delay = effects.delay || {};
+      changed = true;
+      continue;
+    }
+    // Key-value pairs
+    const kv = parseEffectValueToken(token);
+    if (kv) {
+      // Route to correct section
+      if (effects.reverb && ["decay", "wet", "predelay"].includes(kv.key)) {
+        effects.reverb[kv.key] = kv.value;
+        changed = true;
+      } else if (effects.release && kv.key === "amount") {
+        effects.release.amount = kv.value;
+        changed = true;
+      } else if (effects.filter && kv.key === "frequency") {
+        effects.filter.frequency = kv.value;
+        changed = true;
+      } else if (
+        effects.delay &&
+        ["time", "feedback", "wet"].includes(kv.key)
+      ) {
+        effects.delay[kv.key] = kv.value;
+        changed = true;
+      }
+    }
+  }
+  return changed ? normalizeEffects(effects) : prevEffects;
+}
+
+// Parse legacy header effects and normalize
+export function parseSongEffectsFromMarkdown(text) {
+  // Looks for @effects-preset or @effects in the header
+  const lines = String(text || "").split("\n");
+  let effects = {};
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("@effects-preset")) {
+      // Not implemented: could map preset names to effect bundles
+      continue;
+    }
+    if (trimmed.startsWith("@effects")) {
+      // e.g. @effects reverb decay_2.0 wet_0.5
+      const tokens = trimmed.split(/\s+/).slice(1);
+      for (const token of tokens) {
+        if (token === "reverb") effects.reverb = {};
+        else if (token === "release") effects.release = {};
+        else if (token === "lowpass" || token === "filter")
+          effects.filter = { type: "lowpass" };
+        else if (token === "highpass") effects.filter = { type: "highpass" };
+        else if (token === "delay") effects.delay = {};
+        else {
+          const kv = parseEffectValueToken(token);
+          if (kv) {
+            if (
+              effects.reverb &&
+              ["decay", "wet", "predelay"].includes(kv.key)
+            ) {
+              effects.reverb[kv.key] = kv.value;
+            } else if (effects.release && kv.key === "amount") {
+              effects.release.amount = kv.value;
+            } else if (effects.filter && kv.key === "frequency") {
+              effects.filter.frequency = kv.value;
+            } else if (
+              effects.delay &&
+              ["time", "feedback", "wet"].includes(kv.key)
+            ) {
+              effects.delay[kv.key] = kv.value;
+            }
+          }
+        }
+      }
+    }
+    // Stop at first table row
+    if (trimmed.startsWith("|")) break;
+  }
+  return normalizeEffects(effects);
+}
+
 export function parseMarkdownSongTable(text, { tickMs = 10 } = {}) {
   const lines = text.split("\n");
-  const rows = [];
+  const events = [];
+  let activeEffects = parseSongEffectsFromMarkdown(text);
 
   for (const line of lines) {
-    if (!line.trim().startsWith("|")) continue;
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("|")) continue;
     // Skip header separator rows.
-    if (/^\|\s*-+\s*\|/.test(line)) continue;
+    if (/^\|\s*-+\s*\|/.test(trimmed)) continue;
     const cells = parsePipeRow(line);
-    if (!cells || cells.length < 9) continue;
+    if (!cells || !cells.length) continue;
+
+    // Effect directive row: || effect | ... ||
+    if ((cells[1] || "").toLowerCase() === "effect") {
+      activeEffects = parseEffectDirectiveRow(cells, activeEffects);
+      continue;
+    }
+
+    // Note row: must have at least 9 cells
+    if (cells.length < 9) continue;
     // Skip the header row by looking for non-numeric track.
     if (cells[0] === "Track") continue;
-    rows.push(cells);
-  }
 
-  const events = [];
-  for (const cells of rows) {
     const track = Number(cells[0]);
     const instrument = String(cells[1] || "piano");
     const lane = Number(cells[2]);
@@ -60,7 +208,8 @@ export function parseMarkdownSongTable(text, { tickMs = 10 } = {}) {
       durationMs,
       leadTicks,
       hitTick,
-      soundOnly
+      soundOnly,
+      effects: activeEffects ? cloneEffects(activeEffects) : null
     });
   }
 
@@ -87,7 +236,8 @@ export function buildGameSongEventsFromMarkdown(events, { tickMs = 10 } = {}) {
         durationMs: e.durationMs,
         velocity: e.velocity,
         instrument: e.instrument,
-        soundOnly: true
+        soundOnly: true,
+        effects: e.effects ?? null
       });
       continue;
     }
@@ -103,7 +253,8 @@ export function buildGameSongEventsFromMarkdown(events, { tickMs = 10 } = {}) {
       endMs: e.hitTick,
       durationMs: e.durationMs,
       velocity: e.velocity,
-      instrument: e.instrument
+      instrument: e.instrument,
+      effects: e.effects ?? null
     });
   }
 
