@@ -1,5 +1,5 @@
 // playback-tone.js
-// Tone.js-based playback for Note Explorer
+// Tone.js-based playback for Beep Box Level Maker
 // Assumes Tone.js and Tonejs-Instruments.js are loaded via CDN in index.html
 // Add this to your HTML before this script:
 // <script src="https://unpkg.com/tone@next/build/Tone.js"></script>
@@ -26,7 +26,6 @@ export function midiToNoteName(midi) {
   const octave = Math.floor(midi / 12) - 1;
   return note + octave;
 }
-
 export class NotePlayback {
   constructor() {
     this.sampler = null;
@@ -91,6 +90,162 @@ export class NotePlayback {
     this.pausedPlaybackTime = 0;
     this.transportStartAudioTime = null;
     this.currentPart = null;
+
+    // --- Effect chain state ---
+    this.defaultEffects = {
+      release: 3.5,
+      reverb: { decay: 1.6, wet: 0.12, preDelay: 0.03 },
+      filter: undefined,
+      delay: undefined
+    };
+    this.currentEffects = this.cloneEffects(this.defaultEffects);
+    this.currentEffectsSignature = JSON.stringify(this.currentEffects);
+    this.effectInput = null;
+    this.filter = null;
+    this.delay = null;
+    this.reverb = null;
+    this.limiter = null;
+  }
+
+  cloneEffects(effects) {
+    return effects ? JSON.parse(JSON.stringify(effects)) : null;
+  }
+
+  normalizeIncomingEffects(effects = null) {
+    const raw = this.cloneEffects(effects || this.defaultEffects) || {};
+    const release = Number(raw.release?.amount ?? raw.release);
+    const out = {
+      release: Number.isFinite(release)
+        ? Math.max(0.2, Math.min(8, release))
+        : 3.5,
+      reverb: raw.reverb || this.defaultEffects.reverb,
+      filter: raw.filter,
+      delay: raw.delay
+    };
+    if (!out.filter && raw.lowpass?.enabled) {
+      out.filter = {
+        type: "lowpass",
+        frequency: raw.lowpass.frequency
+      };
+    }
+    return out;
+  }
+
+  applySongEffects(effects = null) {
+    // Compute signature and skip if unchanged
+    const normalized = this.normalizeIncomingEffects(effects);
+    const sig = JSON.stringify(normalized || this.defaultEffects);
+    if (sig === this.currentEffectsSignature) return;
+    this.setEffects(normalized);
+  }
+
+  applyPreviewEffects(effects = null) {
+    this.applySongEffects(effects);
+  }
+
+  resetEffectsToDefault() {
+    this.setEffects(this.defaultEffects);
+  }
+
+  setEffects(effects) {
+    this.currentEffects = this.normalizeIncomingEffects(
+      effects || this.defaultEffects
+    );
+    this.currentEffectsSignature = JSON.stringify(this.currentEffects);
+    this.rebuildEffectChain();
+  }
+
+  rebuildEffectChain() {
+    // Remove old nodes if present
+    if (!window.Tone) return;
+    // Disconnect all samplers
+    for (const sampler of this.samplers.values()) {
+      try {
+        sampler.disconnect();
+      } catch {}
+    }
+
+    // Remove old nodes
+    if (this.filter) {
+      try {
+        this.filter.dispose();
+      } catch {}
+      this.filter = null;
+    }
+    if (this.delay) {
+      try {
+        this.delay.dispose();
+      } catch {}
+      this.delay = null;
+    }
+    if (this.reverb) {
+      try {
+        this.reverb.dispose();
+      } catch {}
+      this.reverb = null;
+    }
+    if (this.limiter) {
+      try {
+        this.limiter.dispose();
+      } catch {}
+      this.limiter = null;
+    }
+    if (this.effectInput) {
+      try {
+        this.effectInput.dispose();
+      } catch {}
+      this.effectInput = null;
+    }
+
+    // Create new chain
+    this.effectInput = new window.Tone.Gain(1);
+    let node = this.effectInput;
+
+    // Filter
+    const filterCfg = this.currentEffects.filter;
+    if (filterCfg && filterCfg.type) {
+      this.filter = new window.Tone.Filter({
+        type: filterCfg.type,
+        frequency:
+          filterCfg.frequency ?? (filterCfg.type === "lowpass" ? 1200 : 800)
+      });
+      node.connect(this.filter);
+      node = this.filter;
+    }
+
+    // Delay
+    const delayCfg = this.currentEffects.delay;
+    if (delayCfg) {
+      this.delay = new window.Tone.FeedbackDelay({
+        delayTime: delayCfg.time ?? 0.18,
+        feedback: delayCfg.feedback ?? 0.25,
+        wet: delayCfg.wet ?? 0.18
+      });
+      node.connect(this.delay);
+      node = this.delay;
+    }
+
+    // Reverb
+    const reverbCfg = this.currentEffects.reverb || {};
+    this.reverb = new window.Tone.Reverb({
+      decay: reverbCfg.decay ?? 1.6,
+      preDelay: reverbCfg.preDelay ?? reverbCfg.predelay ?? 0.03,
+      wet: reverbCfg.wet ?? 0.12
+    });
+    node.connect(this.reverb);
+    node = this.reverb;
+
+    // Limiter
+    this.limiter = new window.Tone.Limiter(-2).toDestination();
+    node.connect(this.limiter);
+
+    // Connect all samplers to effectInput
+    for (const sampler of this.samplers.values()) {
+      try {
+        sampler.disconnect();
+      } catch {}
+      sampler.connect(this.effectInput);
+    }
   }
 
   normalizeInstrumentName(name) {
@@ -133,7 +288,7 @@ export class NotePlayback {
         this.instrumentVolumeDb[name] ?? this.defaultSamplerVolumeDb;
       sampler.volume.value = targetDb;
     }
-    sampler.connect(this.reverb);
+    sampler.connect(this.effectInput);
     this.samplers.set(name, sampler);
     await window.Tone.loaded();
     if (name === this.defaultInstrument && !this.sampler)
@@ -166,13 +321,21 @@ export class NotePlayback {
     const v = Number.isFinite(noteVelocity)
       ? Math.max(0, Math.min(1, noteVelocity))
       : 0.7;
+    const releaseTail = Math.max(
+      0,
+      Math.min(
+        8,
+        Number(this.currentEffects?.release ?? this.defaultEffects.release)
+      )
+    );
+    const finalDuration = Math.max(0.04, noteDuration + releaseTail * 0.08);
     await this.loadPiano();
     await window.Tone.start();
     const sampler = await this.getSampler(
       instrumentName || this.defaultInstrument
     );
     if (!sampler) return;
-    sampler.triggerAttackRelease(noteName, noteDuration, undefined, v);
+    sampler.triggerAttackRelease(noteName, finalDuration, undefined, v);
   }
 
   async loadInstrument(instrument = this.defaultInstrument) {
@@ -250,14 +413,9 @@ export class NotePlayback {
 
   async loadPiano() {
     if (this.loaded) return this.sampler;
-    // Shared reverb for all instrument samplers.
-    this.reverb = new window.Tone.Reverb({
-      decay: 1.6,
-      preDelay: 0.03,
-      wet: 0.12
-    });
+    this.effectInput = new window.Tone.Gain(1);
     this.limiter = new window.Tone.Limiter(-2).toDestination();
-    this.reverb.connect(this.limiter);
+    this.rebuildEffectChain();
     this.sampler = await this.getSampler(this.defaultInstrument);
     this.loaded = true;
     console.log("Instrument sampler system loaded with reverb.");
@@ -333,12 +491,20 @@ export class NotePlayback {
       const velocity = Number.isFinite(note.velocity)
         ? Math.max(0, Math.min(1, note.velocity))
         : 0.7;
+      const releaseTail = Math.max(
+        0,
+        Math.min(
+          8,
+          Number(this.currentEffects?.release ?? this.defaultEffects.release)
+        )
+      );
       events.push({
         time: relStart,
         idx: i,
         note,
         noteName,
-        duration: note.duration,
+        duration:
+          Math.max(0.04, Number(note.duration) || 0.04) + releaseTail * 0.08,
         instrumentName: this.resolveInstrumentName(note.instrument),
         velocity
       });

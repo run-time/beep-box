@@ -16,5 +16,14 @@
       ]
     }
   ],
-  "rewrites": [{ "source": "/", "destination": "/level-maker/index.html" }]
+  "rewrites": [
+    {
+      "source": "/level-maker",
+      "destination": "/level-maker/index.html"
+    },
+    {
+      "source": "/level-maker/:path*",
+      "destination": "/level-maker/:path*"
+    }
+  ]
 }

@@ -104,7 +104,8 @@ export function resolveNoteHits(game, nowTs) {
         note.midi,
         note.durationMs ?? 220,
         note.velocity ?? 0.85,
-        note.instrument ?? "piano"
+        note.instrument ?? "piano",
+        note.effects ?? null
       );
     }
     return;
@@ -134,7 +135,8 @@ export function resolveNoteHits(game, nowTs) {
         note.midi,
         note.durationMs ?? 220,
         note.velocity ?? 0.85,
-        note.instrument ?? "piano"
+        note.instrument ?? "piano",
+        note.effects ?? null
       );
     }
     game.streak += group.length;
@@ -158,7 +160,8 @@ export function resolveNoteHits(game, nowTs) {
           note.midi,
           note.durationMs ?? 220,
           note.velocity ?? 0.85,
-          note.instrument ?? "piano"
+          note.instrument ?? "piano",
+          note.effects ?? null
         );
       } else {
         note.hit = false;
@@ -183,7 +186,8 @@ export function resolveNoteHits(game, nowTs) {
         note.midi,
         note.durationMs ?? 220,
         note.velocity ?? 0.85,
-        note.instrument ?? "piano"
+        note.instrument ?? "piano",
+        note.effects ?? null
       );
     } else {
       note.hit = false;

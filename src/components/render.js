@@ -25,10 +25,10 @@ export function getOverlayLayout(game, { dx, dy, dw, dh }) {
   };
 
   const cornerTargets = {
-    TOP_LEFT: ['UP', 'LEFT', 'MIDDLE'],
-    TOP_RIGHT: ['UP', 'RIGHT', 'MIDDLE'],
-    BOTTOM_LEFT: ['DOWN', 'LEFT', 'MIDDLE'],
-    BOTTOM_RIGHT: ['DOWN', 'RIGHT', 'MIDDLE']
+    TOP_LEFT: ["UP", "LEFT", "MIDDLE"],
+    TOP_RIGHT: ["UP", "RIGHT", "MIDDLE"],
+    BOTTOM_LEFT: ["DOWN", "LEFT", "MIDDLE"],
+    BOTTOM_RIGHT: ["DOWN", "RIGHT", "MIDDLE"]
   };
 
   return {
@@ -67,8 +67,8 @@ export function drawLevelBanner(game, ctx, layout, elapsedMs) {
   const alpha = 1 - t;
   const c = layout.centers.MIDDLE;
   ctx.save();
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
   ctx.font = `900 ${Math.floor(layout.boxSize * 1.15)}px sans-serif`;
   ctx.fillStyle = `rgba(255,255,255,${0.9 * alpha})`;
   ctx.strokeStyle = `rgba(0,0,0,${0.85 * alpha})`;
@@ -82,15 +82,15 @@ export function drawCountdown(game, ctx, layout, elapsedMs) {
   const steps = 3;
   const stepMs = game.countdownMs / steps;
   const remaining = Math.max(0, steps - Math.floor(elapsedMs / stepMs));
-  const label = remaining > 0 ? String(remaining) : 'GO';
+  const label = remaining > 0 ? String(remaining) : "GO";
   const c = layout.centers.MIDDLE;
 
   ctx.save();
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
   ctx.font = `900 ${Math.floor(layout.boxSize * 1.4)}px sans-serif`;
-  ctx.fillStyle = 'rgba(255,255,255,0.95)';
-  ctx.strokeStyle = 'rgba(0,0,0,0.9)';
+  ctx.fillStyle = "rgba(255,255,255,0.95)";
+  ctx.strokeStyle = "rgba(0,0,0,0.9)";
   ctx.lineWidth = Math.max(6, layout.boxSize * 0.1);
   ctx.strokeText(label, c.x, c.y);
   ctx.fillText(label, c.x, c.y);
@@ -108,19 +108,19 @@ export function drawScore(game, ctx, layout) {
     pulseT >= 1
       ? 1
       : 1 + 0.35 * Math.sin(Math.PI * (1 - pulseT)) * (1 - pulseT);
-  const betweenLevelsScale = game.gameState === 'level_complete' ? 1.8 : 1.0;
+  const betweenLevelsScale = game.gameState === "level_complete" ? 1.8 : 1.0;
   ctx.save();
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
   ctx.font = `800 ${Math.floor(layout.boxSize * 0.35 * pulse * betweenLevelsScale)}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace`;
-  ctx.fillStyle = 'rgba(255,255,255,0.95)';
-  ctx.strokeStyle = 'rgba(0,0,0,0.85)';
+  ctx.fillStyle = "rgba(255,255,255,0.95)";
+  ctx.strokeStyle = "rgba(0,0,0,0.85)";
   ctx.lineWidth = Math.max(2, layout.boxSize * 0.04);
   const scoreLabel = game.formatScore(game.score);
   ctx.strokeText(scoreLabel, c.x, y);
   ctx.fillText(scoreLabel, c.x, y);
   if (game.powerMode) {
-    const forceAccent = '#9D4EDD';
+    const forceAccent = "#9D4EDD";
     const labelFadeMs = Number.isFinite(game.powerModeLabelFadeMs)
       ? Math.max(0, game.powerModeLabelFadeMs)
       : 5000;
@@ -144,7 +144,7 @@ export function drawScore(game, ctx, layout) {
 }
 
 export function drawMissDots(game, ctx, layout) {
-  if (game.gameState !== 'playing' && game.gameState !== 'countdown') return;
+  if (game.gameState !== "playing" && game.gameState !== "countdown") return;
   const c = layout.centers.MIDDLE;
   const y = c.y;
   const gap = layout.boxSize * 0.22;
@@ -157,10 +157,10 @@ export function drawMissDots(game, ctx, layout) {
     const filled = i < game.missCount;
     ctx.beginPath();
     ctx.arc(x0 + i * gap, y, r, 0, Math.PI * 2);
-    ctx.fillStyle = filled ? 'rgba(204,51,51,0.95)' : 'rgba(255,255,255,0.2)';
+    ctx.fillStyle = filled ? "rgba(204,51,51,0.95)" : "rgba(255,255,255,0.2)";
     ctx.fill();
     ctx.lineWidth = Math.max(1, Math.floor(layout.boxSize * 0.015));
-    ctx.strokeStyle = filled ? 'rgba(80,0,0,0.9)' : 'rgba(255,255,255,0.45)';
+    ctx.strokeStyle = filled ? "rgba(80,0,0,0.9)" : "rgba(255,255,255,0.45)";
     ctx.stroke();
   }
   ctx.restore();
@@ -171,16 +171,16 @@ export function drawLevelComplete(game, ctx, layout, elapsedMs) {
   const alpha = 1 - t * 0.25;
   const c = layout.centers.MIDDLE;
   ctx.save();
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
   const label = game.levelFailed
     ? game.isSingleLevelMode
-      ? 'TRY AGAIN'
-      : 'FAILED'
+      ? "TRY AGAIN"
+      : "FAILED"
     : game.levelPerfect
-      ? 'PERFECT'
-      : 'COMPLETE';
-  if (label === 'PERFECT') {
+      ? "PERFECT"
+      : "COMPLETE";
+  if (label === "PERFECT") {
     ctx.font = `900 ${Math.floor(layout.boxSize * 1.1)}px sans-serif`;
     ctx.fillStyle = `rgba(0,0,0,${0.95 * alpha})`;
     ctx.strokeStyle = `rgba(212,175,55,${0.95 * alpha})`;
@@ -199,58 +199,58 @@ export function drawLevelComplete(game, ctx, layout, elapsedMs) {
 export function drawFinalScore(game, ctx, layout) {
   const c = layout.centers.MIDDLE;
   ctx.save();
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = "rgba(0,0,0,0.55)";
   ctx.fillRect(layout.dx, layout.dy, layout.dw, layout.dh);
   ctx.font = `900 ${Math.floor(layout.boxSize * 0.6)}px sans-serif`;
-  ctx.fillStyle = 'rgba(255,255,255,0.95)';
-  ctx.strokeStyle = 'rgba(0,0,0,0.9)';
+  ctx.fillStyle = "rgba(255,255,255,0.95)";
+  ctx.strokeStyle = "rgba(0,0,0,0.9)";
   ctx.lineWidth = Math.max(6, layout.boxSize * 0.1);
-  ctx.strokeText('FINAL SCORE', c.x, c.y - layout.boxSize * 0.9);
-  ctx.fillText('FINAL SCORE', c.x, c.y - layout.boxSize * 0.9);
+  ctx.strokeText("FINAL SCORE", c.x, c.y - layout.boxSize * 0.9);
+  ctx.fillText("FINAL SCORE", c.x, c.y - layout.boxSize * 0.9);
   ctx.font = `900 ${Math.floor(layout.boxSize * 1.0)}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace`;
   const scoreLabel = game.formatScore(game.score);
   ctx.strokeText(scoreLabel, c.x, c.y + layout.boxSize * 0.2);
   ctx.fillText(scoreLabel, c.x, c.y + layout.boxSize * 0.2);
   ctx.font = `700 ${Math.floor(layout.boxSize * 0.35)}px sans-serif`;
-  ctx.fillStyle = 'rgba(255,255,255,0.85)';
-  ctx.strokeStyle = 'rgba(0,0,0,0.75)';
+  ctx.fillStyle = "rgba(255,255,255,0.85)";
+  ctx.strokeStyle = "rgba(0,0,0,0.75)";
   ctx.lineWidth = Math.max(4, layout.boxSize * 0.07);
-  ctx.strokeText('Click to return', c.x, c.y + layout.boxSize * 1.1);
-  ctx.fillText('Click to return', c.x, c.y + layout.boxSize * 1.1);
+  ctx.strokeText("Click to return", c.x, c.y + layout.boxSize * 1.1);
+  ctx.fillText("Click to return", c.x, c.y + layout.boxSize * 1.1);
 
-  const modeKey = game.getScoreModeKey?.() || 'mouse';
+  const modeKey = game.getScoreModeKey?.() || "mouse";
   const modeLabel =
-    modeKey === 'force'
-      ? 'FORCE'
-      : modeKey === 'keyboard'
-        ? 'KEYBOARD'
-        : modeKey === 'tap'
-          ? 'TAP'
-          : 'MOUSE';
+    modeKey === "force"
+      ? "FORCE"
+      : modeKey === "keyboard"
+        ? "KEYBOARD"
+        : modeKey === "tap"
+          ? "TAP"
+          : "MOUSE";
   const highs = game.getTopScoresForMode?.(modeKey) || [];
   ctx.font = `800 ${Math.floor(layout.boxSize * 0.24)}px sans-serif`;
-  ctx.fillStyle = 'rgba(255,255,255,0.95)';
-  ctx.strokeStyle = 'rgba(0,0,0,0.85)';
+  ctx.fillStyle = "rgba(255,255,255,0.95)";
+  ctx.strokeStyle = "rgba(0,0,0,0.85)";
   ctx.lineWidth = Math.max(3, layout.boxSize * 0.045);
   ctx.strokeText(`${modeLabel} TOP 10`, c.x, c.y + layout.boxSize * 1.55);
   ctx.fillText(`${modeLabel} TOP 10`, c.x, c.y + layout.boxSize * 1.55);
 
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
   ctx.font = `700 ${Math.floor(layout.boxSize * 0.16)}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace`;
   const listX = c.x - layout.boxSize * 0.95;
   const listY = c.y + layout.boxSize * 1.75;
   const lineH = Math.floor(layout.boxSize * 0.18);
   if (!highs.length) {
-    ctx.fillText('No scores yet', listX, listY);
+    ctx.fillText("No scores yet", listX, listY);
   } else {
     for (let i = 0; i < highs.length && i < 10; i++) {
       const row = highs[i];
-      const rank = String(i + 1).padStart(2, '0');
-      const name = (row.initials || 'AAA').padEnd(3, ' ');
-      const sc = game.formatScore(row.score || 0).padStart(6, ' ');
+      const rank = String(i + 1).padStart(2, "0");
+      const name = (row.initials || "AAA").padEnd(3, " ");
+      const sc = game.formatScore(row.score || 0).padStart(6, " ");
       ctx.fillText(`${rank}. ${name}  ${sc}`, listX, listY + i * lineH);
     }
   }
@@ -274,18 +274,18 @@ export function drawScorePopups(game, ctx, layout, nowTs) {
       (p.horizontalDriftDir || 0) *
       easeOut;
     const x = center.x + horizontalDrift;
-    const verticalOffset = p.verticalHalf === 'BOTTOM' ? 0.22 : -0.22;
-    const driftDir = p.verticalHalf === 'BOTTOM' ? 1 : -1;
+    const verticalOffset = p.verticalHalf === "BOTTOM" ? 0.22 : -0.22;
+    const driftDir = p.verticalHalf === "BOTTOM" ? 1 : -1;
     const drift =
       layout.boxSize * game.scorePopupVerticalDriftScale * easeOut * driftDir;
     const y = center.y + layout.boxSize * verticalOffset + drift;
     const scale = 1 + game.scorePopupGrowthScale * easeOut * mobileScale;
 
     ctx.save();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
     ctx.font = `900 ${Math.floor(layout.boxSize * 0.2 * scale)}px sans-serif`;
-    ctx.fillStyle = hexToRgba(p.color || '#ffffff', 0.95 * alpha);
+    ctx.fillStyle = hexToRgba(p.color || "#ffffff", 0.95 * alpha);
     ctx.fillText(`+${p.amount}`, x, y);
     ctx.restore();
   }
@@ -310,14 +310,14 @@ export function drawEdgeGlow(game, ctx, layout) {
   const heightMinScale = Math.min(rawMinScale, rawMaxScale);
   const heightMaxPx = targetSpan * heightMaxScale * modeHeightScale;
   const heightMinPx = targetSpan * heightMinScale * modeHeightScale;
-  const edgePurple = '#7B2CBF';
+  const edgePurple = "#7B2CBF";
   const nowTs = performance.now();
 
   ctx.save();
   ctx.beginPath();
   ctx.rect(dx, dy, dw, dh);
   ctx.clip();
-  ctx.globalCompositeOperation = 'screen';
+  ctx.globalCompositeOperation = "screen";
 
   const phaseByDir = { UP: 0.2, RIGHT: 1.4, DOWN: 2.7, LEFT: 3.9 };
   const steps = Number.isFinite(game.edgeGlowPolySteps)
@@ -361,8 +361,8 @@ export function drawEdgeGlow(game, ctx, layout) {
     if (alpha <= 0.001) return;
     const p = (phaseByDir[dir] || 0) + (burst.seed || 0) * 10;
     const intensityNorm = 1 - life;
-    const crossSize = axis === 'vertical' ? rect.h : rect.w;
-    const runSize = axis === 'vertical' ? rect.w : rect.h;
+    const crossSize = axis === "vertical" ? rect.h : rect.w;
+    const runSize = axis === "vertical" ? rect.w : rect.h;
     const minDepth = Math.max(0, Math.min(crossSize, heightMinPx));
     const maxDepth = Math.max(minDepth, Math.min(crossSize, heightMaxPx));
     const baseScale = Number.isFinite(burst.sizeScale)
@@ -376,7 +376,7 @@ export function drawEdgeGlow(game, ctx, layout) {
     const amp = (maxDepth - minDepth) * (0.45 + 0.35 * intensityNorm);
 
     const g =
-      axis === 'vertical'
+      axis === "vertical"
         ? ctx.createLinearGradient(rect.x, rect.y, rect.x, rect.y + rect.h)
         : ctx.createLinearGradient(rect.x, rect.y, rect.x + rect.w, rect.y);
     const color = burst.color || edgePurple;
@@ -386,8 +386,8 @@ export function drawEdgeGlow(game, ctx, layout) {
     ctx.shadowColor = hexToRgba(color, alpha * 0.9);
     ctx.fillStyle = g;
 
-    if (axis === 'vertical') {
-      const yEdge = dir === 'DOWN' ? rect.y + rect.h : rect.y;
+    if (axis === "vertical") {
+      const yEdge = dir === "DOWN" ? rect.y + rect.h : rect.y;
       const innerPoints = [];
       ctx.beginPath();
       ctx.moveTo(rect.x, yEdge);
@@ -410,7 +410,7 @@ export function drawEdgeGlow(game, ctx, layout) {
           0,
           Math.min(scaledMaxDepth, depth + driftInward)
         );
-        const y = dir === 'DOWN' ? yEdge - inward : yEdge + inward;
+        const y = dir === "DOWN" ? yEdge - inward : yEdge + inward;
         innerPoints.push({ x, y });
         ctx.lineTo(x, y);
       }
@@ -429,7 +429,7 @@ export function drawEdgeGlow(game, ctx, layout) {
       return;
     }
 
-    const xEdge = dir === 'RIGHT' ? rect.x + rect.w : rect.x;
+    const xEdge = dir === "RIGHT" ? rect.x + rect.w : rect.x;
     const innerPoints = [];
     ctx.beginPath();
     ctx.moveTo(xEdge, rect.y);
@@ -449,7 +449,7 @@ export function drawEdgeGlow(game, ctx, layout) {
       );
       const depth = minDepth + (0.5 + 0.5 * composite) * amp * cornerEnvelope;
       const inward = Math.max(0, Math.min(scaledMaxDepth, depth + driftInward));
-      const x = dir === 'RIGHT' ? xEdge - inward : xEdge + inward;
+      const x = dir === "RIGHT" ? xEdge - inward : xEdge + inward;
       innerPoints.push({ x, y });
       ctx.lineTo(x, y);
     }
@@ -469,25 +469,25 @@ export function drawEdgeGlow(game, ctx, layout) {
 
   for (const burst of game.edgeGlowBursts) {
     const dir = burst.dir;
-    if (dir === 'UP') {
-      drawWaveBand(burst, { x: dx, y: dy, w: dw, h: heightMaxPx }, 'vertical');
-    } else if (dir === 'DOWN') {
+    if (dir === "UP") {
+      drawWaveBand(burst, { x: dx, y: dy, w: dw, h: heightMaxPx }, "vertical");
+    } else if (dir === "DOWN") {
       drawWaveBand(
         burst,
         { x: dx, y: dy + dh - heightMaxPx, w: dw, h: heightMaxPx },
-        'vertical'
+        "vertical"
       );
-    } else if (dir === 'LEFT') {
+    } else if (dir === "LEFT") {
       drawWaveBand(
         burst,
         { x: dx, y: dy, w: heightMaxPx, h: dh },
-        'horizontal'
+        "horizontal"
       );
-    } else if (dir === 'RIGHT') {
+    } else if (dir === "RIGHT") {
       drawWaveBand(
         burst,
         { x: dx + dw - heightMaxPx, y: dy, w: heightMaxPx, h: dh },
-        'horizontal'
+        "horizontal"
       );
     }
   }
@@ -570,14 +570,14 @@ export function drawNotes(game, ctx, layout) {
     ctx.arc(x, y, animatedR, 0, Math.PI * 2);
     ctx.closePath();
     const forceNoteByDir = {
-      UP: '#3C096C',
-      RIGHT: '#5A189A',
-      DOWN: '#7B2CBF',
-      LEFT: '#9D4EDD',
-      MIDDLE: '#7B2CBF'
+      UP: "#3C096C",
+      RIGHT: "#5A189A",
+      DOWN: "#7B2CBF",
+      LEFT: "#9D4EDD",
+      MIDDLE: "#7B2CBF"
     };
     const base = game.powerMode
-      ? forceNoteByDir[note.targetDir] || '#7B2CBF'
+      ? forceNoteByDir[note.targetDir] || "#7B2CBF"
       : game.colors[note.targetDir];
     const hitFadeAlpha = note.hit ? 1 - captureT : 1;
     let noteAlpha = minUpcomingOpacity;
@@ -664,16 +664,16 @@ export function drawOverlay(game, ctx, { dx, dy, dw, dh }) {
     MIDDLE: [dx + dw / 2 - b / 2, dy + dh / 2 - b / 2]
   };
   const forceOverlayByDir = {
-    UP: '#9D4EDD',
-    RIGHT: '#9D4EDD',
-    DOWN: '#9D4EDD',
-    LEFT: '#9D4EDD',
-    MIDDLE: '#9D4EDD'
+    UP: "#9D4EDD",
+    RIGHT: "#9D4EDD",
+    DOWN: "#9D4EDD",
+    LEFT: "#9D4EDD",
+    MIDDLE: "#9D4EDD"
   };
   for (const dir of game.directions) {
     ctx.save();
     ctx.beginPath();
-    if (dir === 'MIDDLE') {
+    if (dir === "MIDDLE") {
       const [x, y] = positions[dir];
       const cx = x + b / 2;
       const cy = y + b / 2;
@@ -687,7 +687,7 @@ export function drawOverlay(game, ctx, { dx, dy, dw, dh }) {
     }
     ctx.closePath();
     const stroke = game.powerMode
-      ? forceOverlayByDir[dir] || '#7B2CBF'
+      ? forceOverlayByDir[dir] || "#7B2CBF"
       : game.colors[dir];
     const intensity = getDirectionIntensity(game, dir);
     if (game.powerMode) {
@@ -718,7 +718,7 @@ export function drawDebugInfo(game, ctx, layout, nowTs) {
     `score: ${game.score} streak: ${game.streak}`,
     `notes active: ${game.notes.filter((n) => !n.resolved).length}`,
     `events: ${game.songEventIndex}/${game.songEvents.length}`,
-    `force: ${game.powerMode ? 'on' : 'off'}`,
+    `force: ${game.powerMode ? "on" : "off"}`,
     `dir: ${game.primaryDirection}`,
     `assist win ms: ${game.hitAssistWindowMs}`,
     `t: ${Math.round(nowTs)}`
@@ -732,12 +732,12 @@ export function drawDebugInfo(game, ctx, layout, nowTs) {
   const h = pad * 2 + lh * lines.length;
 
   ctx.save();
-  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  ctx.fillStyle = "rgba(0,0,0,0.6)";
   ctx.fillRect(x - pad, y - pad, w, h);
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
   ctx.font = `700 ${Math.max(11, Math.floor(layout.boxSize * 0.12))}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace`;
-  ctx.fillStyle = 'rgba(255,255,255,0.95)';
+  ctx.fillStyle = "rgba(255,255,255,0.95)";
   for (let i = 0; i < lines.length; i++) {
     ctx.fillText(lines[i], x, y + i * lh);
   }
