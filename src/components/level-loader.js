@@ -1,6 +1,7 @@
 import {
   buildGameSongEventsFromMarkdown,
-  parseMarkdownSongTable
+  parseMarkdownSongTable,
+  parseSongEffectsFromMarkdown
 } from "./songs/markdown-song.js";
 
 function padLevel(level) {
@@ -38,6 +39,9 @@ export function startLevel(game, level, layout, nowTs) {
   game.songEvents = game.levelSongCache.get(level) || [];
   game.activeMidiRange = game.levelMidiRange?.get(level) || null;
   game.notes = [];
+  // --- Apply baseline effects for this level ---
+  const effects = game.levelSongEffects?.get(level) || null;
+  game.notePlayback?.applySongEffects?.(effects);
   void layout;
 }
 
@@ -132,6 +136,9 @@ export async function ensureLevelSongLoaded(game, level) {
     game.levelSongTextCache ??= new Map();
     game.levelSongTextCache.set(level, text);
     game.levelSongCache.set(level, events);
+    // --- Cache baseline effects for this level ---
+    game.levelSongEffects ??= new Map();
+    game.levelSongEffects.set(level, parseSongEffectsFromMarkdown(text));
   })().catch(() => {});
   game.levelSongLoads.set(level, p);
   await p;
@@ -209,7 +216,8 @@ export function maybeSpawnSongNotes(game, nowTs, layout) {
         midi,
         e.durationMs ?? 220,
         e.velocity ?? 0.85,
-        e.instrument ?? "piano"
+        e.instrument ?? "piano",
+        e.effects ?? null
       );
       game.songEventIndex++;
       continue;
@@ -238,7 +246,8 @@ export function maybeSpawnSongNotes(game, nowTs, layout) {
       from: { x: from.x, y: from.y },
       to: { x: to.x, y: to.y },
       hit: false,
-      resolved: false
+      resolved: false,
+      effects: e.effects ?? null
     });
 
     game.songEventIndex++;

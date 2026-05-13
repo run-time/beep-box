@@ -33,6 +33,18 @@ function computeMaxLevelFromSongsDir(songsDir) {
 }
 
 const server = http.createServer((req, res) => {
+  if (req.url === "/level-maker" || req.url === "/level-maker/") {
+    res.writeHead(302, { Location: "/src/level-maker/" });
+    res.end();
+    return;
+  }
+  if (req.url?.startsWith("/level-maker/")) {
+    const remapped = `/src/level-maker/${req.url.slice("/level-maker/".length)}`;
+    res.writeHead(302, { Location: remapped });
+    res.end();
+    return;
+  }
+
   if (req.url === "/api/max-level") {
     const songsDir = path.join(__dirname, "src", "components", "songs");
     const maxLevel = computeMaxLevelFromSongsDir(songsDir);
@@ -64,8 +76,8 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  const filePath = req.url === "/" ? "/index.html" : req.url;
-  const fullPath = path.join(__dirname, filePath);
+  let filePath = req.url === "/" ? "/index.html" : req.url;
+  let fullPath = path.join(__dirname, filePath);
 
   if (!fullPath.startsWith(__dirname)) {
     res.writeHead(403);
@@ -73,7 +85,11 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // If the path is a directory, try to serve its index.html
   try {
+    if (fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory()) {
+      fullPath = path.join(fullPath, "index.html");
+    }
     const content = fs.readFileSync(fullPath);
     const ext = path.extname(fullPath);
     const contentType =
@@ -102,4 +118,8 @@ const PORT = process.env.PORT || 42424;
 server.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log(`Server running on http://localhost:${PORT}`);
+  // eslint-disable-next-line no-console
+  console.log(
+    `Level Maker on http://localhost:${PORT}/level-maker (redirects to /src/level-maker/)`
+  );
 });
