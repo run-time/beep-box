@@ -304,7 +304,7 @@
     <details>
       <summary>Game Preview & Lane Assignments</summary>
       <div id="gameArea" aria-label="Game Area">
-        <div id="gameAreaControls" style="margin-bottom:8px">
+        <div id="gameAreaControls" style="margin-bottom: 8px">
           <button id="insertNotesBtn" type="button">Assign All</button>
           <button id="clearNotesBtn" type="button">Clear All</button>
         </div>
@@ -352,7 +352,7 @@
     <details>
       <summary>Effects</summary>
       <div id="effectsSection" class="effects-container modifier-container">
-        <div class="modifier-row" style="margin-bottom:8px">
+        <div class="modifier-row" style="margin-bottom: 8px">
           <label for="enablePlaybackEffects" style="font-weight: 600"
             >Enable Playback Effects</label
           >
@@ -367,9 +367,7 @@
           "
         >
           <input id="fxReleaseEnabled" type="checkbox" checked />
-          <label for="release"
-            >Release <span id="releaseVal">3.5</span></label
-          >
+          <label for="release">Release <span id="releaseVal">3.5</span></label>
           <div class="fx-stepper">
             <button
               type="button"
@@ -753,7 +751,6 @@
         </div>
       </div>
     </details>
-
 
     <script src="https://unpkg.com/tone@next/build/Tone.js"></script>
     <script src="https://nbrosowsky.github.io/tonejs-instruments/Tonejs-Instruments.js"></script>
@@ -1305,7 +1302,12 @@
       }
 
       function renderCurrentRowStatus(noteIdx) {
-        if (!Number.isFinite(noteIdx) || noteIdx < 0 || noteIdx >= playbackNotes.length) return;
+        if (
+          !Number.isFinite(noteIdx) ||
+          noteIdx < 0 ||
+          noteIdx >= playbackNotes.length
+        )
+          return;
         const note = playbackNotes[noteIdx];
         if (!note) return;
         const currentRowDiv = document.getElementById('currentRowStatus');

@@ -6,9 +6,7 @@ export function sortAndFormatNotesTable(text) {
   function format3(x) {
     if (!Number.isFinite(x)) return "";
     // Round to 3 decimals, then trim trailing zeros/dot.
-    return x
-      .toFixed(3)
-      .replace(/\.?0+$/, "");
+    return x.toFixed(3).replace(/\.?0+$/, "");
   }
 
   function isSplitLaneFormat(cols) {
@@ -24,9 +22,25 @@ export function sortAndFormatNotesTable(text) {
 
   function getRowIndexes(cols) {
     if (isSplitLaneFormat(cols)) {
-      return { instrument: 1, lane: 2, key: 3, vel: 5, dur: 6, time: 7, spawn: 8 };
+      return {
+        instrument: 1,
+        lane: 2,
+        key: 3,
+        vel: 5,
+        dur: 6,
+        time: 7,
+        spawn: 8
+      };
     }
-    return { instrument: null, lane: null, key: 2, vel: 4, dur: 5, time: 6, spawn: 7 };
+    return {
+      instrument: null,
+      lane: null,
+      key: 2,
+      vel: 4,
+      dur: 5,
+      time: 6,
+      spawn: 7
+    };
   }
 
   function normalizeRowToSplitWithSpawn(cols) {
@@ -72,7 +86,7 @@ export function sortAndFormatNotesTable(text) {
     const norm = normalizeRowToSplitWithSpawn(cols);
     return {
       raw: norm.cols,
-      time: parseFloat(norm.cols[norm.idx.time]),
+      time: parseFloat(norm.cols[norm.idx.time])
     };
   });
   // Sort by last column (time)
@@ -154,7 +168,7 @@ export function gatherSongMetadata(text) {
     chordCount,
     trackCount: tracks.size,
     tracks: Array.from(tracks),
-    duration: lastTime || 0,
+    duration: lastTime || 0
   };
 }
 
@@ -187,7 +201,8 @@ export function parseInput(text) {
     if (midi < 21 || midi > 108) continue;
     const duration = parseFloat(cols[durIdx]);
     const start = parseFloat(cols[timeIdx]);
-    const instrument = instrumentIdx !== null ? (cols[instrumentIdx] || "piano") : "piano";
+    const instrument =
+      instrumentIdx !== null ? cols[instrumentIdx] || "piano" : "piano";
     if (!isNaN(midi) && !isNaN(duration) && !isNaN(start)) {
       notes.push({ midi, duration, start, instrument, lineIdx: i, raw: line });
       rowLineMap.push(i);
@@ -320,7 +335,7 @@ export function insertNotesForChords(text, options = {}) {
     LEFT: [21, 22],
     RIGHT: [31, 32],
     DOWN: [41, 42],
-    MIDDLE: [51, 52, 53, 54],
+    MIDDLE: [51, 52, 53, 54]
   };
 
   function chooseTarget(norm, rng) {
@@ -334,7 +349,7 @@ export function insertNotesForChords(text, options = {}) {
       ["DOWN", down],
       ["MIDDLE", middle],
       ["LEFT", side],
-      ["RIGHT", side],
+      ["RIGHT", side]
     ]);
   }
 
@@ -356,15 +371,14 @@ export function insertNotesForChords(text, options = {}) {
 
     const pitch = chordPitches[chordIdx];
     const norm = clamp01((pitch - minPitch) / pitchSpan);
-    const rng = mulberry32(seed ^ (Math.floor(chordTime * 1000) + chordIdx * 101));
+    const rng = mulberry32(
+      seed ^ (Math.floor(chordTime * 1000) + chordIdx * 101)
+    );
 
     const canSwitchByDuration = chordTime - laneStartTime >= holdSeconds;
     const canSwitchByGap =
       chordTime - lastAssignedChordTime >= minGapSecondsToSwitch;
-    if (
-      currentTarget === null ||
-      (canSwitchByDuration && canSwitchByGap)
-    ) {
+    if (currentTarget === null || (canSwitchByDuration && canSwitchByGap)) {
       currentTarget = chooseTarget(norm, rng);
       laneStartTime = chordTime;
       holdSeconds =

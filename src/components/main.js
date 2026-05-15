@@ -1,4 +1,4 @@
-import { NotePlayback } from '../playback.js';
+import { NotePlayback } from "../playback.js";
 import {
   advanceLevel as advanceLevelState,
   decodeLane as decodeSongLane,
@@ -9,7 +9,7 @@ import {
   maybeSpawnSongNotes as maybeSpawnSongNotesState,
   startLevel as startLevelState,
   startLevelFlow as startLevelFlowState
-} from './level-loader.js';
+} from "./level-loader.js";
 import {
   buildChordMidi as buildChordMidiState,
   decayEdgeGlow as decayEdgeGlowState,
@@ -24,7 +24,7 @@ import {
   updateActiveFades as updateActiveFadesState,
   updateNotes as updateNotesState,
   updateUpcomingNoteAssist as updateUpcomingNoteAssistState
-} from './note-flow.js';
+} from "./note-flow.js";
 import {
   getImminentTargetDirections as getImminentTargetDirectionsState,
   getSquareMotionLayoutKey as getSquareMotionLayoutKeyState,
@@ -32,7 +32,7 @@ import {
   updateMouseActivation as updateMouseActivationState,
   updateSquareMotionActivation as updateSquareMotionActivationState,
   updateSquareMotionBaselines as updateSquareMotionBaselinesState
-} from './motion.js';
+} from "./motion.js";
 import {
   drawCaptureEffects,
   drawCountdown,
@@ -48,24 +48,24 @@ import {
   drawScorePopups,
   getDirectionIntensity as getRenderDirectionIntensity,
   getOverlayLayout as getRenderOverlayLayout
-} from './render.js';
+} from "./render.js";
 
 export class HanSoloistGame extends HTMLElement {
   constructor() {
     super();
-    this.attachShadow({ mode: 'open' });
-    this.GAME_MODE = 'stage'; // 'prod' | 'stage' | 'test' | 'dev' | 'dev-mouse' | 'dev-keyboard' | 'dev-video' | 'dev-auto' | 'dev-record'
-    this.play_mode = 'use-the-mouse';
+    this.attachShadow({ mode: "open" });
+    this.GAME_MODE = "stage"; // 'prod' | 'stage' | 'test' | 'dev' | 'dev-mouse' | 'dev-keyboard' | 'dev-video' | 'dev-auto' | 'dev-record'
+    this.play_mode = "use-the-mouse";
     this.tapHoldMs = 260;
     this.tapActiveUntilTs = 0;
     this.tapActiveDir = null;
     this.arrowHeld = new Set();
     this.activeFadeMs = 200;
-    this.primaryDirection = 'MIDDLE';
+    this.primaryDirection = "MIDDLE";
     this.activeDirStates = new Map();
     // Per-square adaptive foreground detection for hand presence.
     this.squareMotionState = new Map();
-    this.squareMotionLayoutKey = '';
+    this.squareMotionLayoutKey = "";
     this.squareMotionFrames = 0;
     this.squareMotionTargetFrames = 18;
     this.squareMotionStride = 4;
@@ -82,39 +82,39 @@ export class HanSoloistGame extends HTMLElement {
     this.squareMotionPctLast = new Map();
     this.squareMotionActiveDir = null;
     this.squareMotionActiveUntilTs = 0;
-    this.directions = ['UP', 'RIGHT', 'DOWN', 'LEFT', 'MIDDLE'];
+    this.directions = ["UP", "RIGHT", "DOWN", "LEFT", "MIDDLE"];
     this.colors = {
-      UP: '#cc3333', // red
-      RIGHT: '#3366cc', // blue
-      DOWN: '#339966', // green
-      LEFT: '#999900', // yellow
-      MIDDLE: '#999999' // grey
+      UP: "#cc3333", // red
+      RIGHT: "#3366cc", // blue
+      DOWN: "#339966", // green
+      LEFT: "#999900", // yellow
+      MIDDLE: "#999999" // grey
     };
     // Fill colors: mostly transparent by default so video remains visible.
     // "Active" highlights more strongly.
     this.fillColors = {
-      UP: 'rgba(204,51,51,0.10)',
-      RIGHT: 'rgba(51,102,204,0.10)',
-      DOWN: 'rgba(51,153,102,0.10)',
-      LEFT: 'rgba(153,153,0,0.10)',
-      MIDDLE: 'rgba(153,153,153,0.10)'
+      UP: "rgba(204,51,51,0.10)",
+      RIGHT: "rgba(51,102,204,0.10)",
+      DOWN: "rgba(51,153,102,0.10)",
+      LEFT: "rgba(153,153,0,0.10)",
+      MIDDLE: "rgba(153,153,153,0.10)"
     };
     this.activeFillColors = {
-      UP: 'rgba(204,51,51,0.50)',
-      RIGHT: 'rgba(51,102,204,0.50)',
-      DOWN: 'rgba(51,153,102,0.50)',
-      LEFT: 'rgba(153,153,0,0.50)',
-      MIDDLE: 'rgba(153,153,153,0.50)'
+      UP: "rgba(204,51,51,0.50)",
+      RIGHT: "rgba(51,102,204,0.50)",
+      DOWN: "rgba(51,153,102,0.50)",
+      LEFT: "rgba(153,153,0,0.50)",
+      MIDDLE: "rgba(153,153,153,0.50)"
     };
-    this.video = document.createElement('video');
-    this.video.setAttribute('autoplay', '');
-    this.video.setAttribute('playsinline', '');
+    this.video = document.createElement("video");
+    this.video.setAttribute("autoplay", "");
+    this.video.setAttribute("playsinline", "");
     this.stream = null;
     this.animationFrame = null;
     this.lastFrameTs = performance.now();
     // Reusable analysis surface for pixel reads (avoid per-frame canvas allocation).
-    this.analysisCanvas = document.createElement('canvas');
-    this.analysisCtx = this.analysisCanvas.getContext('2d', {
+    this.analysisCanvas = document.createElement("canvas");
+    this.analysisCtx = this.analysisCanvas.getContext("2d", {
       willReadFrequently: true
     });
 
@@ -142,7 +142,7 @@ export class HanSoloistGame extends HTMLElement {
     this.notePlayback = new NotePlayback();
 
     // Game state
-    this.gameState = 'title'; // title | level_banner | countdown | playing | level_complete | game_over
+    this.gameState = "title"; // title | level_banner | countdown | playing | level_complete | game_over
     this.levelBannerStartTs = 0;
     this.levelBannerMs = 3000;
     this.countdownStartTs = 0;
@@ -168,7 +168,7 @@ export class HanSoloistGame extends HTMLElement {
     this.powerMode = false;
     this.powerModeLabelStartTs = 0;
     this.powerModeLabelFadeMs = 5000;
-    this.powerModeLabel = 'USE THE FORCE';
+    this.powerModeLabel = "USE THE FORCE";
     this.scorePopups = [];
     this.scorePulseStartTs = 0;
     this.scorePulseMs = 650;
@@ -194,7 +194,7 @@ export class HanSoloistGame extends HTMLElement {
     this.noteMaxUpcomingOpacity = 1.0;
     this.devAutoPostHitGraceMs = 140;
     this.devRecordLevelStartTs = 0;
-    this.devRecordLastTarget = 'NONE';
+    this.devRecordLastTarget = "NONE";
     this.devRecordLastChangeTs = 0;
     this.devRecordTargetRanges = [];
     this.devRecordLevelCompleteLogged = false;
@@ -208,24 +208,24 @@ export class HanSoloistGame extends HTMLElement {
 
     // Edge glow feedback (on successful captures)
     this.edgeGlow = new Map([
-      ['UP', 0],
-      ['RIGHT', 0],
-      ['DOWN', 0],
-      ['LEFT', 0]
+      ["UP", 0],
+      ["RIGHT", 0],
+      ["DOWN", 0],
+      ["LEFT", 0]
     ]);
     this.edgeGlowBursts = [];
     this.edgeGlowColor = new Map([
-      ['UP', this.colors.UP],
-      ['RIGHT', this.colors.RIGHT],
-      ['DOWN', this.colors.DOWN],
-      ['LEFT', this.colors.LEFT]
+      ["UP", this.colors.UP],
+      ["RIGHT", this.colors.RIGHT],
+      ["DOWN", this.colors.DOWN],
+      ["LEFT", this.colors.LEFT]
     ]);
     // 1.0 = full thickness (middle hits), 0.5 = half thickness (edge hits)
     this.edgeGlowSizeScale = new Map([
-      ['UP', 0.6],
-      ['RIGHT', 0.6],
-      ['DOWN', 0.6],
-      ['LEFT', 0.6]
+      ["UP", 0.6],
+      ["RIGHT", 0.6],
+      ["DOWN", 0.6],
+      ["LEFT", 0.6]
     ]);
     this.edgeGlowEnabled = false;
     // Stronger punch, faster fade.
@@ -243,26 +243,26 @@ export class HanSoloistGame extends HTMLElement {
     this.edgeGlowPolySteps = 128;
     this.edgeGlowDriftRatio = 0.88;
     this.edgeGlowBurstFadeMs = 480;
-    this.highScoreStorageKey = 'han_soloist_highscores_v1';
+    this.highScoreStorageKey = "han_soloist_highscores_v1";
     this.highScores = this.createEmptyHighScores();
 
-    this.canvas = document.createElement('canvas');
-    this.container = document.createElement('div');
-    this.titleScreen = document.createElement('img');
-    this.titleScreen.src = './welcome.jpg';
-    this.titleScreen.alt = 'Han Soloist - Click to Start';
-    this.titleScreen.decoding = 'async';
-    this.titleLevelBar = document.createElement('div');
-    this.titleLevelBar.className = 'title-level-bar';
-    this.titleModeBar = document.createElement('div');
-    this.titleModeBar.className = 'title-mode-bar';
-    this.resetLevelButton = document.createElement('button');
-    this.resetLevelButton.type = 'button';
-    this.resetLevelButton.className = 'reset-level-btn';
-    this.resetLevelButton.setAttribute('aria-label', 'Reset level');
+    this.canvas = document.createElement("canvas");
+    this.container = document.createElement("div");
+    this.titleScreen = document.createElement("img");
+    this.titleScreen.src = "./welcome.jpg";
+    this.titleScreen.alt = "Han Soloist - Click to Start";
+    this.titleScreen.decoding = "async";
+    this.titleLevelBar = document.createElement("div");
+    this.titleLevelBar.className = "title-level-bar";
+    this.titleModeBar = document.createElement("div");
+    this.titleModeBar.className = "title-mode-bar";
+    this.resetLevelButton = document.createElement("button");
+    this.resetLevelButton.type = "button";
+    this.resetLevelButton.className = "reset-level-btn";
+    this.resetLevelButton.setAttribute("aria-label", "Reset level");
     this.resetLevelButton.innerHTML =
-      '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 16c1.671 0 3-1.331 3-3s-1.329-3-3-3-3 1.331-3 3 1.329 3 3 3z"/><path d="M20.817 11.186a8.94 8.94 0 0 0-1.355-3.219 9.053 9.053 0 0 0-2.43-2.43 8.95 8.95 0 0 0-3.219-1.355 9.028 9.028 0 0 0-1.838-.18V2L8 5l3.975 3V6.002c.484-.002.968.044 1.435.14a6.961 6.961 0 0 1 2.502 1.053 7.005 7.005 0 0 1 1.892 1.892A6.967 6.967 0 0 1 19 13a7.032 7.032 0 0 1-.55 2.725 7.11 7.11 0 0 1-.644 1.188 7.2 7.2 0 0 1-.858 1.039 7.028 7.028 0 0 1-3.536 1.907 7.13 7.13 0 0 1-2.822 0 6.961 6.961 0 0 1-2.503-1.054 7.002 7.002 0 0 1-1.89-1.89A6.996 6.996 0 0 1 5 13H3a9.02 9.02 0 0 0 1.539 5.034 9.096 9.096 0 0 0 2.428 2.428A8.95 8.95 0 0 0 12 22a9.09 9.09 0 0 0 1.814-.183 9.014 9.014 0 0 0 3.218-1.355 8.886 8.886 0 0 0 1.331-1.099 9.228 9.228 0 0 0 1.1-1.332A8.952 8.952 0 0 0 21 13a9.09 9.09 0 0 0-.183-1.814z"/></svg>';
-    const style = document.createElement('style');
+      "<svg viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\"><path d=\"M12 16c1.671 0 3-1.331 3-3s-1.329-3-3-3-3 1.331-3 3 1.329 3 3 3z\"/><path d=\"M20.817 11.186a8.94 8.94 0 0 0-1.355-3.219 9.053 9.053 0 0 0-2.43-2.43 8.95 8.95 0 0 0-3.219-1.355 9.028 9.028 0 0 0-1.838-.18V2L8 5l3.975 3V6.002c.484-.002.968.044 1.435.14a6.961 6.961 0 0 1 2.502 1.053 7.005 7.005 0 0 1 1.892 1.892A6.967 6.967 0 0 1 19 13a7.032 7.032 0 0 1-.55 2.725 7.11 7.11 0 0 1-.644 1.188 7.2 7.2 0 0 1-.858 1.039 7.028 7.028 0 0 1-3.536 1.907 7.13 7.13 0 0 1-2.822 0 6.961 6.961 0 0 1-2.503-1.054 7.002 7.002 0 0 1-1.89-1.89A6.996 6.996 0 0 1 5 13H3a9.02 9.02 0 0 0 1.539 5.034 9.096 9.096 0 0 0 2.428 2.428A8.95 8.95 0 0 0 12 22a9.09 9.09 0 0 0 1.814-.183 9.014 9.014 0 0 0 3.218-1.355 8.886 8.886 0 0 0 1.331-1.099 9.228 9.228 0 0 0 1.1-1.332A8.952 8.952 0 0 0 21 13a9.09 9.09 0 0 0-.183-1.814z\"/></svg>";
+    const style = document.createElement("style");
     style.textContent = `
       :host {
         display: block;
@@ -452,17 +452,17 @@ export class HanSoloistGame extends HTMLElement {
         fill: currentColor;
       }
     `;
-    this.titleScreen.className = 'title';
+    this.titleScreen.className = "title";
     this.shadowRoot.appendChild(style);
-    this.container.className = 'container';
+    this.container.className = "container";
     this.container.appendChild(this.canvas);
     this.container.appendChild(this.titleScreen);
     this.container.appendChild(this.titleModeBar);
     this.container.appendChild(this.titleLevelBar);
     this.container.appendChild(this.resetLevelButton);
     this.shadowRoot.appendChild(this.container);
-    this.ctx = this.canvas.getContext('2d');
-    this.canvas.style.display = 'none';
+    this.ctx = this.canvas.getContext("2d");
+    this.canvas.style.display = "none";
     this.resizeCanvas = this.resizeCanvas.bind(this);
     this.unlockAudio = this.unlockAudio.bind(this);
     this.onUserStart = this.onUserStart.bind(this);
@@ -475,34 +475,34 @@ export class HanSoloistGame extends HTMLElement {
 
     if (window.Tone && window.SampleLibrary) {
       console.log(
-        '[HanSoloist] Tone.js and SampleLibrary detected. Loading piano and organ...'
+        "[HanSoloist] Tone.js and SampleLibrary detected. Loading piano and organ..."
       );
-      this.notePlayback.loadInstrument('piano').then(() => {
-        console.log('[HanSoloist] Piano instrument loaded');
+      this.notePlayback.loadInstrument("piano").then(() => {
+        console.log("[HanSoloist] Piano instrument loaded");
       });
-      this.notePlayback.loadInstrument('organ').then(() => {
-        console.log('[HanSoloist] Organ instrument loaded');
+      this.notePlayback.loadInstrument("organ").then(() => {
+        console.log("[HanSoloist] Organ instrument loaded");
       });
     } else {
       console.warn(
-        '[HanSoloist] Tone.js or SampleLibrary not found on page load'
+        "[HanSoloist] Tone.js or SampleLibrary not found on page load"
       );
     }
   }
 
   connectedCallback() {
-    window.addEventListener('resize', this.resizeCanvas);
-    window.addEventListener('mousemove', this.onMouseMove, { passive: true });
-    window.addEventListener('keydown', this.onKeyDown);
-    window.addEventListener('keyup', this.onKeyUp);
-    this.canvas.addEventListener('pointerdown', this.onPointerDown, {
+    window.addEventListener("resize", this.resizeCanvas);
+    window.addEventListener("mousemove", this.onMouseMove, { passive: true });
+    window.addEventListener("keydown", this.onKeyDown);
+    window.addEventListener("keyup", this.onKeyUp);
+    this.canvas.addEventListener("pointerdown", this.onPointerDown, {
       passive: true
     });
-    this.resetLevelButton.addEventListener('click', this.onResetLevelClick);
-    this.titleScreen.addEventListener('click', this.onUserStart, {
+    this.resetLevelButton.addEventListener("click", this.onResetLevelClick);
+    this.titleScreen.addEventListener("click", this.onUserStart, {
       passive: true
     });
-    this.container.addEventListener('click', this.onUserStart, {
+    this.container.addEventListener("click", this.onUserStart, {
       passive: true
     });
     this.resizeCanvas();
@@ -511,14 +511,14 @@ export class HanSoloistGame extends HTMLElement {
   }
 
   disconnectedCallback() {
-    window.removeEventListener('resize', this.resizeCanvas);
-    window.removeEventListener('mousemove', this.onMouseMove);
-    window.removeEventListener('keydown', this.onKeyDown);
-    window.removeEventListener('keyup', this.onKeyUp);
-    this.canvas.removeEventListener('pointerdown', this.onPointerDown);
-    this.resetLevelButton.removeEventListener('click', this.onResetLevelClick);
-    this.titleScreen.removeEventListener('click', this.onUserStart);
-    this.container.removeEventListener('click', this.onUserStart);
+    window.removeEventListener("resize", this.resizeCanvas);
+    window.removeEventListener("mousemove", this.onMouseMove);
+    window.removeEventListener("keydown", this.onKeyDown);
+    window.removeEventListener("keyup", this.onKeyUp);
+    this.canvas.removeEventListener("pointerdown", this.onPointerDown);
+    this.resetLevelButton.removeEventListener("click", this.onResetLevelClick);
+    this.titleScreen.removeEventListener("click", this.onUserStart);
+    this.container.removeEventListener("click", this.onUserStart);
     this.stopCamera();
     if (this.animationFrame) cancelAnimationFrame(this.animationFrame);
   }
@@ -526,64 +526,64 @@ export class HanSoloistGame extends HTMLElement {
   renderTitleLevelButtons() {
     if (!this.titleLevelBar) return;
     if (!this.titleModeBar) return;
-    this.titleLevelBar.textContent = '';
-    this.titleModeBar.textContent = '';
-    if (this.gameState !== 'title') {
-      this.titleLevelBar.style.display = 'none';
-      this.titleModeBar.style.display = 'none';
+    this.titleLevelBar.textContent = "";
+    this.titleModeBar.textContent = "";
+    if (this.gameState !== "title") {
+      this.titleLevelBar.style.display = "none";
+      this.titleModeBar.style.display = "none";
       return;
     }
     const mobile = this.isMobileDevice();
     const modeDefs = [
       {
-        mode: 'use-the-force',
-        label: 'FORCE'
+        mode: "use-the-force",
+        label: "FORCE"
       }
     ];
     if (mobile) {
       modeDefs.push({
-        mode: 'use-the-tap',
-        label: 'TAP'
+        mode: "use-the-tap",
+        label: "TAP"
       });
       if (
-        this.play_mode !== 'use-the-force' &&
-        this.play_mode !== 'use-the-tap'
+        this.play_mode !== "use-the-force" &&
+        this.play_mode !== "use-the-tap"
       ) {
-        this.setPlayMode('use-the-tap');
+        this.setPlayMode("use-the-tap");
       }
     } else {
       modeDefs.push(
         {
-          mode: 'use-the-mouse',
-          label: 'MOUSE'
+          mode: "use-the-mouse",
+          label: "MOUSE"
         },
         {
-          mode: 'use-the-arrows',
-          label: 'KEYBOARD'
+          mode: "use-the-arrows",
+          label: "KEYBOARD"
         }
       );
     }
 
-    this.titleModeBar.style.display = '';
-    const label = document.createElement('span');
-    label.className = 'title-mode-label';
-    label.textContent = 'USE THE';
+    this.titleModeBar.style.display = "";
+    const label = document.createElement("span");
+    label.className = "title-mode-label";
+    label.textContent = "USE THE";
     this.titleModeBar.appendChild(label);
 
-    const modeChoices = document.createElement('div');
-    modeChoices.className = 'title-mode-choices';
+    const modeChoices = document.createElement("div");
+    modeChoices.className = "title-mode-choices";
     for (const m of modeDefs) {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = `mode-btn${this.play_mode === m.mode ? ' active' : ''}`;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = `mode-btn${this.play_mode === m.mode ? " active" : ""}`;
       btn.textContent = m.label;
       btn.addEventListener(
-        'click',
+        "click",
         (e) => {
           e.preventDefault();
           e.stopPropagation();
           this.setPlayMode(m.mode);
-          if (m.mode === 'use-the-force') {
+          if (m.mode === "use-the-force") {
             void this.startCamera();
           }
           this.renderTitleLevelButtons();
@@ -594,12 +594,12 @@ export class HanSoloistGame extends HTMLElement {
     }
     this.titleModeBar.appendChild(modeChoices);
 
-    const startBtn = document.createElement('button');
-    startBtn.type = 'button';
-    startBtn.className = 'title-start-btn';
-    startBtn.textContent = 'START';
+    const startBtn = document.createElement("button");
+    startBtn.type = "button";
+    startBtn.className = "title-start-btn";
+    startBtn.textContent = "START";
     startBtn.addEventListener(
-      'click',
+      "click",
       (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -609,22 +609,22 @@ export class HanSoloistGame extends HTMLElement {
     );
     this.titleModeBar.appendChild(startBtn);
 
-    if (this.GAME_MODE === 'prod') {
-      this.titleLevelBar.style.display = 'none';
+    if (this.GAME_MODE === "prod") {
+      this.titleLevelBar.style.display = "none";
       return;
     }
     const max = Math.max(0, Math.floor(this.maxLevel || 0));
     if (max < 1) {
-      this.titleLevelBar.style.display = 'none';
+      this.titleLevelBar.style.display = "none";
       return;
     }
-    this.titleLevelBar.style.display = '';
+    this.titleLevelBar.style.display = "";
     for (let level = 1; level <= max; level++) {
-      const btn = document.createElement('button');
-      btn.type = 'button';
+      const btn = document.createElement("button");
+      btn.type = "button";
       btn.textContent = String(level);
       btn.addEventListener(
-        'click',
+        "click",
         (e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -638,25 +638,25 @@ export class HanSoloistGame extends HTMLElement {
 
   async startFromTitleSelection() {
     this.renderTitleLevelButtons();
-    if (this.gameState !== 'title') return;
+    if (this.gameState !== "title") return;
     const nowTs = performance.now();
     this.unlockAudio();
-    this.titleScreen.style.display = 'none';
-    this.canvas.style.display = '';
-    if (this.titleLevelBar) this.titleLevelBar.style.display = 'none';
-    if (this.titleModeBar) this.titleModeBar.style.display = 'none';
+    this.titleScreen.style.display = "none";
+    this.canvas.style.display = "";
+    if (this.titleLevelBar) this.titleLevelBar.style.display = "none";
+    if (this.titleModeBar) this.titleModeBar.style.display = "none";
     await this.startNewRun(nowTs);
     this.startGameLoop();
   }
 
   async startSingleLevelFromTitle(level) {
-    if (this.gameState !== 'title') return;
+    if (this.gameState !== "title") return;
     const nowTs = performance.now();
     this.unlockAudio();
-    this.titleScreen.style.display = 'none';
-    this.canvas.style.display = '';
-    if (this.titleLevelBar) this.titleLevelBar.style.display = 'none';
-    if (this.titleModeBar) this.titleModeBar.style.display = 'none';
+    this.titleScreen.style.display = "none";
+    this.canvas.style.display = "";
+    if (this.titleLevelBar) this.titleLevelBar.style.display = "none";
+    if (this.titleModeBar) this.titleModeBar.style.display = "none";
     this.startCamera();
     await this.ensureMaxLevelLoaded();
     const selected = Math.max(
@@ -684,21 +684,21 @@ export class HanSoloistGame extends HTMLElement {
 
   onUserStart() {
     const nowTs = performance.now();
-    if (this.gameState === 'title') {
+    if (this.gameState === "title") {
       const mobile = this.isMobileDevice();
       if (mobile) {
         return;
       }
       this.unlockAudio();
-      this.titleScreen.style.display = 'none';
-      this.canvas.style.display = '';
-      if (this.titleLevelBar) this.titleLevelBar.style.display = 'none';
-      if (this.titleModeBar) this.titleModeBar.style.display = 'none';
+      this.titleScreen.style.display = "none";
+      this.canvas.style.display = "";
+      if (this.titleLevelBar) this.titleLevelBar.style.display = "none";
+      if (this.titleModeBar) this.titleModeBar.style.display = "none";
       this.startCamera();
       void this.startNewRun(nowTs);
       return;
     }
-    if (this.gameState === 'game_over') {
+    if (this.gameState === "game_over") {
       this.returnToTitle();
     }
   }
@@ -706,7 +706,7 @@ export class HanSoloistGame extends HTMLElement {
   onResetLevelClick(e) {
     e.preventDefault();
     e.stopPropagation();
-    if (this.gameState === 'title') return;
+    if (this.gameState === "title") return;
     const nowTs = performance.now();
     this.startLevelFlow(nowTs);
   }
@@ -726,11 +726,11 @@ export class HanSoloistGame extends HTMLElement {
 
   returnToTitle() {
     this.stopCamera();
-    this.gameState = 'title';
-    this.titleScreen.style.display = '';
-    this.canvas.style.display = 'none';
-    if (this.titleLevelBar) this.titleLevelBar.style.display = '';
-    if (this.titleModeBar) this.titleModeBar.style.display = '';
+    this.gameState = "title";
+    this.titleScreen.style.display = "";
+    this.canvas.style.display = "none";
+    if (this.titleLevelBar) this.titleLevelBar.style.display = "";
+    if (this.titleModeBar) this.titleModeBar.style.display = "";
     this.notes = [];
     this.songEvents = [];
     this.songEventIndex = 0;
@@ -746,32 +746,32 @@ export class HanSoloistGame extends HTMLElement {
     this.arrowHeld.clear();
     this.tapActiveDir = null;
     this.tapActiveUntilTs = 0;
-    this.resetLevelButton.style.display = 'none';
+    this.resetLevelButton.style.display = "none";
   }
 
   isMobileDevice() {
-    if (window.matchMedia?.('(pointer: coarse)').matches) return true;
-    if (window.matchMedia?.('(any-pointer: coarse)').matches) return true;
-    if (window.matchMedia?.('(hover: none)').matches) return true;
+    if (window.matchMedia?.("(pointer: coarse)").matches) return true;
+    if (window.matchMedia?.("(any-pointer: coarse)").matches) return true;
+    if (window.matchMedia?.("(hover: none)").matches) return true;
     if ((navigator.maxTouchPoints || 0) > 0) return true;
     if (navigator.userAgentData?.mobile) return true;
-    return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+    return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
   }
 
   setPlayMode(mode) {
     const allowed = new Set([
-      'use-the-force',
-      'use-the-mouse',
-      'use-the-arrows',
-      'use-the-tap'
+      "use-the-force",
+      "use-the-mouse",
+      "use-the-arrows",
+      "use-the-tap"
     ]);
     if (!allowed.has(mode)) return;
     this.play_mode = mode;
     this.arrowHeld.clear();
     this.tapActiveDir = null;
     this.tapActiveUntilTs = 0;
-    if (mode !== 'use-the-arrows') {
-      this.primaryDirection = 'MIDDLE';
+    if (mode !== "use-the-arrows") {
+      this.primaryDirection = "MIDDLE";
     }
   }
 
@@ -793,25 +793,25 @@ export class HanSoloistGame extends HTMLElement {
   }
 
   mapKeyToDirection(key) {
-    const k = String(key || '').toLowerCase();
-    if (k === 'arrowup' || k === 'w') return 'UP';
-    if (k === 'arrowright' || k === 'd') return 'RIGHT';
-    if (k === 'arrowdown' || k === 's') return 'DOWN';
-    if (k === 'arrowleft' || k === 'a') return 'LEFT';
+    const k = String(key || "").toLowerCase();
+    if (k === "arrowup" || k === "w") return "UP";
+    if (k === "arrowright" || k === "d") return "RIGHT";
+    if (k === "arrowdown" || k === "s") return "DOWN";
+    if (k === "arrowleft" || k === "a") return "LEFT";
     return null;
   }
 
   onKeyDown(e) {
     const allowKeyboard =
-      this.play_mode === 'use-the-arrows' ||
-      this.GAME_MODE === 'dev-keyboard' ||
-      this.GAME_MODE === 'dev-record';
+      this.play_mode === "use-the-arrows" ||
+      this.GAME_MODE === "dev-keyboard" ||
+      this.GAME_MODE === "dev-record";
     if (!allowKeyboard) return;
     if (
-      this.GAME_MODE === 'dev-record' &&
-      !String(e.key || '')
+      this.GAME_MODE === "dev-record" &&
+      !String(e.key || "")
         .toLowerCase()
-        .startsWith('arrow')
+        .startsWith("arrow")
     ) {
       return;
     }
@@ -824,15 +824,15 @@ export class HanSoloistGame extends HTMLElement {
 
   onKeyUp(e) {
     const allowKeyboard =
-      this.play_mode === 'use-the-arrows' ||
-      this.GAME_MODE === 'dev-keyboard' ||
-      this.GAME_MODE === 'dev-record';
+      this.play_mode === "use-the-arrows" ||
+      this.GAME_MODE === "dev-keyboard" ||
+      this.GAME_MODE === "dev-record";
     if (!allowKeyboard) return;
     if (
-      this.GAME_MODE === 'dev-record' &&
-      !String(e.key || '')
+      this.GAME_MODE === "dev-record" &&
+      !String(e.key || "")
         .toLowerCase()
-        .startsWith('arrow')
+        .startsWith("arrow")
     ) {
       return;
     }
@@ -843,13 +843,13 @@ export class HanSoloistGame extends HTMLElement {
     const nowTs = performance.now();
     if (remaining.length)
       this.selectDirection(remaining[remaining.length - 1], nowTs);
-    else this.selectDirection('MIDDLE', nowTs);
+    else this.selectDirection("MIDDLE", nowTs);
     e.preventDefault();
   }
 
   onPointerDown(e) {
-    if (this.play_mode !== 'use-the-tap') return;
-    if (this.gameState !== 'playing') return;
+    if (this.play_mode !== "use-the-tap") return;
+    if (this.gameState !== "playing") return;
     const rect = this.canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
@@ -887,7 +887,7 @@ export class HanSoloistGame extends HTMLElement {
     if (this.maxLevelPromise) return this.maxLevelPromise;
     const p = (async () => {
       try {
-        const res = await fetch('/api/max-level', { cache: 'no-cache' });
+        const res = await fetch("/api/max-level", { cache: "no-cache" });
         if (!res.ok) throw new Error(`max-level: ${res.status}`);
         const data = await res.json();
         const maxLevel = Number(data?.maxLevel);
@@ -903,13 +903,13 @@ export class HanSoloistGame extends HTMLElement {
 
   unlockAudio() {
     if (this.audioUnlocked) {
-      console.log('[unlockAudio] Audio already unlocked');
+      console.log("[unlockAudio] Audio already unlocked");
       return;
     }
     try {
       const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
       if (!AudioContextCtor) {
-        console.warn('[unlockAudio] No AudioContext available');
+        console.warn("[unlockAudio] No AudioContext available");
         return;
       }
       this.audioCtx = new AudioContextCtor();
@@ -919,9 +919,9 @@ export class HanSoloistGame extends HTMLElement {
       this.audioUnlocked = true;
       // Resume if created in suspended state.
       this.audioCtx.resume?.();
-      console.log('[unlockAudio] Audio unlocked, context:', this.audioCtx);
+      console.log("[unlockAudio] Audio unlocked, context:", this.audioCtx);
     } catch (err) {
-      console.error('[unlockAudio] Error unlocking audio:', err);
+      console.error("[unlockAudio] Error unlocking audio:", err);
       // Ignore; audio will remain disabled.
     }
   }
@@ -935,14 +935,14 @@ export class HanSoloistGame extends HTMLElement {
     midi,
     durationMs = 220,
     velocity = 0.85,
-    instrument = 'piano',
+    instrument = "piano",
     effects = null
   ) {
     // Prefer Tone.js piano sampler if present; fallback to oscillator synth.
     if (this.notePlayback && window.Tone && window.SampleLibrary) {
       const durSec = Math.max(0.04, durationMs / 1000);
       // Apply effects before triggering note
-      if (typeof this.notePlayback.applySongEffects === 'function') {
+      if (typeof this.notePlayback.applySongEffects === "function") {
         this.notePlayback.applySongEffects(effects);
       }
       void this.notePlayback.triggerNote(midi, durSec, velocity, instrument);
@@ -955,7 +955,7 @@ export class HanSoloistGame extends HTMLElement {
     const freq = this.midiToFreq(midi);
 
     const osc = ctx.createOscillator();
-    osc.type = 'triangle';
+    osc.type = "triangle";
     osc.frequency.setValueAtTime(freq, now);
 
     const gain = ctx.createGain();
@@ -1028,20 +1028,20 @@ export class HanSoloistGame extends HTMLElement {
     let frameW = cw;
     let frameH = ch;
 
-    const devMixedMode = this.GAME_MODE === 'dev';
-    const devMouseMode = this.GAME_MODE === 'dev-mouse';
-    const devKeyboardMode = this.GAME_MODE === 'dev-keyboard';
-    const devVideoMode = this.GAME_MODE === 'dev-video';
-    const devAutoMode = this.GAME_MODE === 'dev-auto';
-    const devRecordMode = this.GAME_MODE === 'dev-record';
+    const devMixedMode = this.GAME_MODE === "dev";
+    const devMouseMode = this.GAME_MODE === "dev-mouse";
+    const devKeyboardMode = this.GAME_MODE === "dev-keyboard";
+    const devVideoMode = this.GAME_MODE === "dev-video";
+    const devAutoMode = this.GAME_MODE === "dev-auto";
+    const devRecordMode = this.GAME_MODE === "dev-record";
     const hideVideoFeed = devMouseMode || devKeyboardMode || devRecordMode;
     const wantsVideoFeed =
-      this.play_mode === 'use-the-force' || devMixedMode || devVideoMode;
+      this.play_mode === "use-the-force" || devMixedMode || devVideoMode;
     const shouldConstrainPlayfield =
       !wantsVideoFeed &&
       !this.isMobileDevice() &&
-      (this.play_mode === 'use-the-mouse' ||
-        this.play_mode === 'use-the-arrows' ||
+      (this.play_mode === "use-the-mouse" ||
+        this.play_mode === "use-the-arrows" ||
         devMouseMode ||
         devKeyboardMode);
     if (shouldConstrainPlayfield) {
@@ -1071,7 +1071,7 @@ export class HanSoloistGame extends HTMLElement {
         this.selectDirection(held[held.length - 1], nowTs);
         keyboardRegistered = true;
       } else {
-        this.selectDirection('MIDDLE', nowTs);
+        this.selectDirection("MIDDLE", nowTs);
       }
     } else if (devMouseMode) {
       mouseRegistered = this.updateMouseActivation(mouseFrame, nowTs);
@@ -1083,13 +1083,13 @@ export class HanSoloistGame extends HTMLElement {
       } else {
         mouseRegistered = this.updateMouseActivation(mouseFrame, nowTs);
       }
-    } else if (this.play_mode === 'use-the-mouse') {
+    } else if (this.play_mode === "use-the-mouse") {
       mouseRegistered = this.updateMouseActivation(mouseFrame, nowTs);
-    } else if (this.play_mode === 'use-the-arrows') {
+    } else if (this.play_mode === "use-the-arrows") {
       const held = Array.from(this.arrowHeld);
       if (held.length) this.selectDirection(held[held.length - 1], nowTs);
-      else this.selectDirection('MIDDLE', nowTs);
-    } else if (this.play_mode === 'use-the-tap') {
+      else this.selectDirection("MIDDLE", nowTs);
+    } else if (this.play_mode === "use-the-tap") {
       if (this.tapActiveDir) {
         this.selectDirection(this.tapActiveDir, nowTs);
       }
@@ -1108,12 +1108,12 @@ export class HanSoloistGame extends HTMLElement {
       ctx.translate(cw, 0);
       ctx.scale(-1, 1); // mirror
       if (this.powerMode) {
-        ctx.filter = 'hue-rotate(275deg) saturate(2.35) contrast(1.08)';
+        ctx.filter = "hue-rotate(275deg) saturate(2.35) contrast(1.08)";
       }
       // If dims are temporarily 0 (some browsers), still attempt drawing to fill.
       if (vw > 0 && vh > 0) ctx.drawImage(this.video, dx, dy, dw, dh);
       else ctx.drawImage(this.video, 0, 0, cw, ch);
-      ctx.filter = 'none';
+      ctx.filter = "none";
       ctx.restore();
 
       if (this.analysisCanvas.width !== cw) this.analysisCanvas.width = cw;
@@ -1141,11 +1141,11 @@ export class HanSoloistGame extends HTMLElement {
           ch * 0.5,
           Math.max(cw, ch) * 0.7
         );
-        g.addColorStop(0, '#ffffff');
-        g.addColorStop(1, '#ededda');
+        g.addColorStop(0, "#ffffff");
+        g.addColorStop(1, "#ededda");
         ctx.fillStyle = g;
       } else {
-        ctx.fillStyle = '#000';
+        ctx.fillStyle = "#000";
       }
       ctx.fillRect(0, 0, cw, ch);
       ctx.restore();
@@ -1160,7 +1160,7 @@ export class HanSoloistGame extends HTMLElement {
       devAutoMode ||
       devRecordMode;
     const showDebugInfo =
-      this.GAME_MODE === 'test' ||
+      this.GAME_MODE === "test" ||
       devMixedMode ||
       devMouseMode ||
       devKeyboardMode ||
@@ -1186,9 +1186,9 @@ export class HanSoloistGame extends HTMLElement {
     }
 
     let bannerElapsed = null;
-    if (this.gameState === 'level_banner') {
+    if (this.gameState === "level_banner") {
       if (skipBannerAndCountdown) {
-        this.gameState = 'playing';
+        this.gameState = "playing";
         this.notes = [];
         this.lastSpawnTs = 0;
         this.playingStartTs = nowTs;
@@ -1202,7 +1202,7 @@ export class HanSoloistGame extends HTMLElement {
             void this.ensureLevelReady(this.currentLevel);
             bannerElapsed = this.levelBannerMs - 250;
           } else {
-            this.gameState = 'countdown';
+            this.gameState = "countdown";
             this.countdownStartTs = nowTs;
             this.notes = [];
             this.lastSpawnTs = 0;
@@ -1216,10 +1216,10 @@ export class HanSoloistGame extends HTMLElement {
     }
 
     // Skip countdown in dev mode for faster iteration.
-    if (this.gameState === 'countdown') {
+    if (this.gameState === "countdown") {
       const elapsed = nowTs - this.countdownStartTs;
       if (elapsed >= this.countdownMs || skipBannerAndCountdown) {
-        this.gameState = 'playing';
+        this.gameState = "playing";
         this.notes = [];
         this.lastSpawnTs = 0;
         this.playingStartTs = nowTs;
@@ -1229,7 +1229,7 @@ export class HanSoloistGame extends HTMLElement {
       }
     }
 
-    if (this.gameState === 'playing') {
+    if (this.gameState === "playing") {
       this.captureDevRecordFrame(nowTs);
       this.maybeSpawnSongNotes(nowTs, layout);
       if (devAutoMode) this.applyDevAutoSelection(nowTs);
@@ -1262,7 +1262,7 @@ export class HanSoloistGame extends HTMLElement {
         ) {
           this.levelFailed = this.missCount >= this.maxMissDots;
           this.levelPerfect = !this.levelFailed && this.missCount === 0;
-          this.gameState = 'level_complete';
+          this.gameState = "level_complete";
           this.levelCompleteStartTs = nowTs;
           this.songResolveSettledStartTs = 0;
           this.finishDevRecordLevel(nowTs);
@@ -1270,7 +1270,7 @@ export class HanSoloistGame extends HTMLElement {
       }
     }
 
-    if (this.gameState === 'level_complete') {
+    if (this.gameState === "level_complete") {
       drawCaptureEffects(this, ctx, layout, nowTs);
       drawScore(this, ctx, layout);
       drawMissDots(this, ctx, layout);
@@ -1281,16 +1281,16 @@ export class HanSoloistGame extends HTMLElement {
       }
     }
 
-    if (this.gameState === 'game_over') {
+    if (this.gameState === "game_over") {
       drawFinalScore(this, ctx, layout);
     }
 
-    if (this.gameState === 'playing') {
+    if (this.gameState === "playing") {
       drawEdgeGlow(this, ctx, layout);
       drawOverlay(this, ctx, { dx, dy, dw, dh });
     }
 
-    if (!skipBannerAndCountdown && this.gameState === 'countdown') {
+    if (!skipBannerAndCountdown && this.gameState === "countdown") {
       drawOverlay(this, ctx, { dx, dy, dw, dh });
       drawCountdown(this, ctx, layout, nowTs - this.countdownStartTs);
     }
@@ -1303,14 +1303,14 @@ export class HanSoloistGame extends HTMLElement {
       drawDebugInfo(this, ctx, layout, nowTs);
     }
 
-    if (this.gameState === 'title') {
-      this.resetLevelButton.style.display = 'none';
+    if (this.gameState === "title") {
+      this.resetLevelButton.style.display = "none";
       this.animationFrame = null;
       return;
     }
 
     this.resetLevelButton.style.display =
-      this.canvas.style.display === 'none' ? 'none' : 'flex';
+      this.canvas.style.display === "none" ? "none" : "flex";
 
     this.animationFrame = requestAnimationFrame(() => this.processFrame());
   }
@@ -1348,29 +1348,29 @@ export class HanSoloistGame extends HTMLElement {
   }
 
   registerMissEvent(nowTs) {
-    if (this.GAME_MODE === 'dev-record') return;
+    if (this.GAME_MODE === "dev-record") return;
     if (nowTs - this.lastMissTs < this.missLeniencyMs) return;
     this.lastMissTs = nowTs;
     this.missCount = Math.min(this.maxMissDots, this.missCount + 1);
     if (this.missCount >= this.maxMissDots) {
       this.levelFailed = true;
-      if (this.gameState === 'playing' && this.isSingleLevelMode) {
-        this.gameState = 'level_complete';
+      if (this.gameState === "playing" && this.isSingleLevelMode) {
+        this.gameState = "level_complete";
         this.levelCompleteStartTs = nowTs;
         this.songResolveSettledStartTs = 0;
         this.finishDevRecordLevel(nowTs);
-      } else if (this.gameState === 'playing') {
+      } else if (this.gameState === "playing") {
         this.enterGameOver(nowTs);
       }
     }
   }
 
   getActiveTargetForRecord() {
-    return this.primaryDirection || 'MIDDLE';
+    return this.primaryDirection || "MIDDLE";
   }
 
   startDevRecordLevel(nowTs) {
-    if (this.GAME_MODE !== 'dev-record') return;
+    if (this.GAME_MODE !== "dev-record") return;
     this.devRecordLevelStartTs = nowTs;
     this.devRecordLastTarget = this.getActiveTargetForRecord();
     this.devRecordLastChangeTs = nowTs;
@@ -1379,7 +1379,7 @@ export class HanSoloistGame extends HTMLElement {
   }
 
   captureDevRecordFrame(nowTs) {
-    if (this.GAME_MODE !== 'dev-record') return;
+    if (this.GAME_MODE !== "dev-record") return;
     if (
       !Number.isFinite(this.devRecordLevelStartTs) ||
       this.devRecordLevelStartTs <= 0
@@ -1390,7 +1390,7 @@ export class HanSoloistGame extends HTMLElement {
     const target = this.getActiveTargetForRecord();
     if (target === this.devRecordLastTarget) return;
     this.devRecordTargetRanges.push({
-      target: this.devRecordLastTarget || 'NONE',
+      target: this.devRecordLastTarget || "NONE",
       from: Math.max(
         0,
         Math.round(this.devRecordLastChangeTs - this.devRecordLevelStartTs)
@@ -1402,7 +1402,7 @@ export class HanSoloistGame extends HTMLElement {
   }
 
   finishDevRecordLevel(nowTs) {
-    if (this.GAME_MODE !== 'dev-record') return;
+    if (this.GAME_MODE !== "dev-record") return;
     if (this.devRecordLevelCompleteLogged) return;
     if (
       !Number.isFinite(this.devRecordLevelStartTs) ||
@@ -1410,7 +1410,7 @@ export class HanSoloistGame extends HTMLElement {
     )
       return;
     this.devRecordTargetRanges.push({
-      target: this.devRecordLastTarget || 'NONE',
+      target: this.devRecordLastTarget || "NONE",
       from: Math.max(
         0,
         Math.round(this.devRecordLastChangeTs - this.devRecordLevelStartTs)
@@ -1420,15 +1420,15 @@ export class HanSoloistGame extends HTMLElement {
     const lines = this.devRecordTargetRanges.map(
       (r) => `target: ${r.target}, from: ${r.from}, to: ${r.to}`
     );
-    console.log(lines.join('\n'));
+    console.log(lines.join("\n"));
     this.devRecordLevelCompleteLogged = true;
   }
 
   getScoreModeKey() {
-    if (this.play_mode === 'use-the-force') return 'force';
-    if (this.play_mode === 'use-the-arrows') return 'keyboard';
-    if (this.play_mode === 'use-the-tap') return 'tap';
-    return 'mouse';
+    if (this.play_mode === "use-the-force") return "force";
+    if (this.play_mode === "use-the-arrows") return "keyboard";
+    if (this.play_mode === "use-the-tap") return "tap";
+    return "mouse";
   }
 
   createEmptyHighScores() {
@@ -1440,14 +1440,14 @@ export class HanSoloistGame extends HTMLElement {
       const raw = localStorage.getItem(this.highScoreStorageKey);
       if (!raw) return;
       const parsed = JSON.parse(raw);
-      if (!parsed || typeof parsed !== 'object') return;
+      if (!parsed || typeof parsed !== "object") return;
       const out = this.createEmptyHighScores();
       for (const mode of Object.keys(out)) {
         const list = Array.isArray(parsed[mode]) ? parsed[mode] : [];
         out[mode] = list
           .filter(
             (s) =>
-              s && Number.isFinite(s.score) && typeof s.initials === 'string'
+              s && Number.isFinite(s.score) && typeof s.initials === "string"
           )
           .map((s) => ({
             initials: s.initials.slice(0, 3).toUpperCase(),
@@ -1485,11 +1485,11 @@ export class HanSoloistGame extends HTMLElement {
   }
 
   addHighScore(initials, score, modeKey = this.getScoreModeKey()) {
-    const clean = String(initials || 'AAA')
+    const clean = String(initials || "AAA")
       .toUpperCase()
-      .replace(/[^A-Z]/g, '')
+      .replace(/[^A-Z]/g, "")
       .slice(0, 3)
-      .padEnd(3, 'A');
+      .padEnd(3, "A");
     const list = this.getTopScoresForMode(modeKey).slice();
     list.push({
       initials: clean,
@@ -1503,14 +1503,14 @@ export class HanSoloistGame extends HTMLElement {
 
   promptHighScoreInitials(modeKey, score) {
     if (!this.isHighScore(score, modeKey)) return;
-    const entered = window.prompt('New high score! Enter 3 initials:', 'AAA');
+    const entered = window.prompt("New high score! Enter 3 initials:", "AAA");
     if (entered == null) return;
     this.addHighScore(entered, score, modeKey);
   }
 
   enterGameOver(nowTs) {
     void nowTs;
-    this.gameState = 'game_over';
+    this.gameState = "game_over";
     this.songResolveSettledStartTs = 0;
     this.finishDevRecordLevel(performance.now());
     this.promptHighScoreInitials(this.getScoreModeKey(), this.score);
@@ -1518,7 +1518,7 @@ export class HanSoloistGame extends HTMLElement {
 
   formatScore(value) {
     const n = Math.max(0, Math.floor(Number(value) || 0));
-    return n.toLocaleString('en-US');
+    return n.toLocaleString("en-US");
   }
 
   getNoteSpawnPoint(layout, corner) {
@@ -1580,8 +1580,8 @@ export class HanSoloistGame extends HTMLElement {
       }
     }
     if (nextDirs.size) {
-      const nextPrimary = nextDirs.has('MIDDLE')
-        ? 'MIDDLE'
+      const nextPrimary = nextDirs.has("MIDDLE")
+        ? "MIDDLE"
         : Array.from(nextDirs)[0];
       this.primaryDirection = nextPrimary;
       for (const dir of this.directions) {
@@ -1592,9 +1592,9 @@ export class HanSoloistGame extends HTMLElement {
         }
       }
     } else {
-      this.primaryDirection = 'MIDDLE';
+      this.primaryDirection = "MIDDLE";
       this.activeDirStates.clear();
-      this.activeDirStates.set('MIDDLE', { fadeStartTs: null, intensity: 1 });
+      this.activeDirStates.set("MIDDLE", { fadeStartTs: null, intensity: 1 });
     }
   }
 

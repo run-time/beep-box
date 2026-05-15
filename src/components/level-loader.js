@@ -2,7 +2,7 @@ import {
   buildGameSongEventsFromMarkdown,
   parseMarkdownSongTable,
   parseSongEffectsFromMarkdown
-} from "./songs/markdown-song.js";
+} from "../levels/markdown-song.js";
 
 function padLevel(level) {
   const n = Math.max(0, Math.floor(Number(level) || 0));
@@ -106,7 +106,7 @@ export async function ensureLevelSongLoaded(game, level) {
   if (game.levelSongLoads.has(level)) return;
 
   const p = (async () => {
-    const url = `/src/components/songs/${padLevel(level)}.md`;
+    const url = `/src/levels/${padLevel(level)}.md`;
     const res = await fetch(url, { cache: "no-cache" });
     if (!res.ok) throw new Error(`Failed to load song: ${res.status}`);
     const text = await res.text();

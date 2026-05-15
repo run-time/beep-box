@@ -46,7 +46,7 @@ const server = http.createServer((req, res) => {
   }
 
   if (req.url === "/api/max-level") {
-    const songsDir = path.join(__dirname, "src", "components", "songs");
+    const songsDir = path.join(__dirname, "src", "levels");
     const maxLevel = computeMaxLevelFromSongsDir(songsDir);
     res.writeHead(200, {
       "Content-Type": "application/json; charset=utf-8",

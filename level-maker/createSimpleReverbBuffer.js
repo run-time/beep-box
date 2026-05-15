@@ -3,7 +3,7 @@
 export function createSimpleReverbBuffer(
   audioCtx,
   duration = 2.0,
-  decay = 0.3,
+  decay = 0.3
 ) {
   const rate = audioCtx.sampleRate;
   const length = rate * duration;

@@ -20,7 +20,7 @@ export function midiToNoteName(midi) {
     "G#",
     "A",
     "A#",
-    "B",
+    "B"
   ];
   const note = noteNames[midi % 12];
   const octave = Math.floor(midi / 12) - 1;
@@ -53,11 +53,11 @@ export class NotePlayback {
       "trumpet",
       "tuba",
       "violin",
-      "xylophone",
+      "xylophone"
     ]);
     this.instrumentAliases = {
       "nylon guitar": "guitar-nylon",
-      "french horn": "french-horn",
+      "french horn": "french-horn"
     };
     this.reportedFallbacks = new Set();
     this.defaultSamplerVolumeDb = -10;
@@ -80,7 +80,7 @@ export class NotePlayback {
       clarinet: -9,
       flute: -9,
       violin: -9,
-      xylophone: -10,
+      xylophone: -10
     };
     this.scheduledTimeouts = [];
     this.isPaused = false;
@@ -104,7 +104,7 @@ export class NotePlayback {
       return normalized;
     } else {
       console.warn(
-        `Unsupported instrument "${name}" -> using "${this.defaultInstrument}"`,
+        `Unsupported instrument "${name}" -> using "${this.defaultInstrument}"`
       );
       return this.defaultInstrument;
     }
@@ -119,7 +119,7 @@ export class NotePlayback {
       instruments: [name],
       baseUrl: "https://nbrosowsky.github.io/tonejs-instruments/samples/",
       minify: true,
-      ext: ".mp3",
+      ext: ".mp3"
     });
     let sampler = loaded[name];
     // Fallback to piano for unknown/unsupported instrument names.
@@ -144,7 +144,7 @@ export class NotePlayback {
     noteOrMidi,
     duration,
     instrument = this.defaultInstrument,
-    velocity = 1,
+    velocity = 1
   ) {
     const midi = typeof noteOrMidi === "number" ? noteOrMidi : noteOrMidi?.midi;
     const noteDuration =
@@ -168,7 +168,7 @@ export class NotePlayback {
     await this.loadPiano();
     await window.Tone.start();
     const sampler = await this.getSampler(
-      instrumentName || this.defaultInstrument,
+      instrumentName || this.defaultInstrument
     );
     if (!sampler) return;
     sampler.triggerAttackRelease(noteName, noteDuration, undefined, v);
@@ -253,7 +253,7 @@ export class NotePlayback {
     this.reverb = new window.Tone.Reverb({
       decay: 1.6,
       preDelay: 0.03,
-      wet: 0.12,
+      wet: 0.12
     });
     this.limiter = new window.Tone.Limiter(-2).toDestination();
     this.reverb.connect(this.limiter);
@@ -316,8 +316,8 @@ export class NotePlayback {
     }
     await Promise.all(
       Array.from(instrumentsToLoad).map((instrumentName) =>
-        this.getSampler(instrumentName),
-      ),
+        this.getSampler(instrumentName)
+      )
     );
 
     const events = [];
@@ -339,7 +339,7 @@ export class NotePlayback {
         noteName,
         duration: note.duration,
         instrumentName: this.resolveInstrumentName(note.instrument),
-        velocity,
+        velocity
       });
     }
 
@@ -353,7 +353,7 @@ export class NotePlayback {
           event.noteName,
           event.duration,
           time,
-          event.velocity,
+          event.velocity
         );
       }
       if (!onStatusUpdate) return;

@@ -1,183 +1,202 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>beep-box level maker</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 2em;
+      }
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>beep-box level maker</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      margin: 2em;
-    }
+      textarea {
+        width: 800px;
+        height: 400px;
+        font-family: monospace;
+        overflow-wrap: normal;
+        white-space: pre;
+      }
 
-    textarea {
-      width: 800px;
-      height: 400px;
-      font-family: monospace;
-      overflow-wrap: normal;
-      white-space: pre;
-    }
+      button {
+        margin-top: 1em;
+        padding: 0.5em 1em;
+      }
 
-    button {
-      margin-top: 1em;
-      padding: 0.5em 1em;
-    }
+      .controls {
+        margin-bottom: 1em;
+      }
 
-    .controls {
-      margin-bottom: 1em;
-    }
+      #gameArea {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #111;
+        color: #fff;
+        border-top: 2px solid #333;
+        padding: 12px 16px;
+        box-sizing: border-box;
+        z-index: 10;
+      }
 
-    #gameArea {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: #111;
-      color: #fff;
-      border-top: 2px solid #333;
-      padding: 12px 16px;
-      box-sizing: border-box;
-      z-index: 10;
-    }
+      #gameAreaInner {
+        width: 100%;
+        height: 420px;
+        display: grid;
+        grid-template-columns: 800px 1fr;
+        gap: 16px;
+        align-items: stretch;
+      }
 
-    #gameAreaInner {
-      width: 100%;
-      height: 420px;
-      display: grid;
-      grid-template-columns: 800px 1fr;
-      gap: 16px;
-      align-items: stretch;
-    }
+      #lanePreview {
+        width: 400px;
+        height: 300px;
+        border: 4px solid #444;
+        border-radius: 8px;
+        position: relative;
+        overflow: hidden;
+        background:
+          linear-gradient(#222, #222) padding-box,
+          radial-gradient(
+            circle at 20% 20%,
+            rgba(255, 255, 255, 0.08),
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 80% 80%,
+            rgba(255, 255, 255, 0.06),
+            transparent 55%
+          );
+      }
 
-    #lanePreview {
-      width: 400px;
-      height: 300px;
-      border: 4px solid #444;
-      border-radius: 8px;
-      position: relative;
-      overflow: hidden;
-      background:
-        linear-gradient(#222, #222) padding-box,
-        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.08), transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.06), transparent 55%);
-    }
+      .previewDot {
+        width: 16px;
+        height: 16px;
+        border-radius: 12px;
+        position: absolute;
+        transform: translate(-50%, -50%);
+        border: 2px solid rgba(255, 255, 255, 0.75);
+        box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.3);
+      }
 
-    .previewDot {
-      width: 16px;
-      height: 16px;
-      border-radius: 12px;
-      position: absolute;
-      transform: translate(-50%, -50%);
-      border: 2px solid rgba(255, 255, 255, 0.75);
-      box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.3);
-    }
+      .previewTarget {
+        width: 24px;
+        height: 24px;
+        left: 50%;
+        top: 50%;
+        border-radius: 0;
+        border-width: 4px;
+        opacity: 0.7;
+      }
 
-    .previewTarget {
-      width: 24px;
-      height: 24px;
-      left: 50%;
-      top: 50%;
-      border-radius: 0;
-      border-width: 4px;
-      opacity: 0.7;
-    }
+      #laneInfo {
+        margin-top: 8px;
+        font-size: 12px;
+        color: #ccc;
+      }
 
-    #laneInfo {
-      margin-top: 8px;
-      font-size: 12px;
-      color: #ccc;
-    }
+      #gameCanvas {
+        display: block;
+        border: 4px solid #444;
+        border-radius: 8px;
+        background: #1b1b1b;
+      }
 
-    #gameCanvas {
-      display: block;
-      border: 4px solid #444;
-      border-radius: 8px;
-      background: #1b1b1b;
-    }
+      #laneButtons {
+        display: grid;
+        grid-template-columns: repeat(4, 44px);
+        gap: 8px;
+        justify-content: end;
+      }
 
-    #laneButtons {
-      display: grid;
-      grid-template-columns: repeat(4, 44px);
-      gap: 8px;
-      justify-content: end;
-    }
+      .laneBtn {
+        margin-top: 0;
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        font-size: 12px;
+        border-radius: 8px;
+        border: 1px solid #444;
+        background: #1a1a1a;
+        color: #fff;
+        cursor: pointer;
+      }
 
-    .laneBtn {
-      margin-top: 0;
-      width: 44px;
-      height: 44px;
-      padding: 0;
-      font-size: 12px;
-      border-radius: 8px;
-      border: 1px solid #444;
-      background: #1a1a1a;
-      color: #fff;
-      cursor: pointer;
-    }
+      .laneBtn.wide {
+        width: auto;
+        grid-column: 1 / -1;
+        height: 40px;
+        padding: 0 10px;
+        justify-self: stretch;
+      }
 
-    .laneBtn.wide {
-      width: auto;
-      grid-column: 1 / -1;
-      height: 40px;
-      padding: 0 10px;
-      justify-self: stretch;
-    }
+      .laneBtn.active {
+        outline: 2px solid #fff;
+        border-color: #fff;
+      }
 
-    .laneBtn.active {
-      outline: 2px solid #fff;
-      border-color: #fff;
-    }
+      .laneBtn.up {
+        background: #5a1010;
+      }
 
-    .laneBtn.up {
-      background: #5a1010;
-    }
+      .laneBtn.left {
+        background: #5a4b10;
+      }
 
-    .laneBtn.left {
-      background: #5a4b10;
-    }
+      .laneBtn.right {
+        background: #10305a;
+      }
 
-    .laneBtn.right {
-      background: #10305a;
-    }
+      .laneBtn.down {
+        background: #0f4a1b;
+      }
 
-    .laneBtn.down {
-      background: #0f4a1b;
-    }
+      .laneBtn.mid {
+        background: #3a3a3a;
+      }
 
-    .laneBtn.mid {
-      background: #3a3a3a;
-    }
+      .laneBtn.none {
+        background: #222;
+      }
 
-    .laneBtn.none {
-      background: #222;
-    }
+      /* Leave room so fixed game area doesn't overlap content */
+      body {
+        padding-bottom: 700px;
+      }
 
-    /* Leave room so fixed game area doesn't overlap content */
-    body {
-      padding-bottom: 700px;
-    }
+      #applyInstrumentBtn {
+        margin-top: 0;
+        height: 24px;
+        padding: 0 8px;
+      }
+    </style>
+  </head>
 
-    #applyInstrumentBtn {
-      margin-top: 0;
-      height: 24px;
-      padding: 0 8px;
-    }
-  </style>
-</head>
+  <body>
+    <h1 id="mainHeader">beep-box level maker</h1>
 
-<body>
-  <h1 id="mainHeader">beep-box level maker</h1>
+    <div id="modeControls" style="margin: 0.5em 0 1em 0">
+      <label style="margin-right: 1em"
+        ><input type="checkbox" id="chordMode" checked /> Chord Mode</label
+      >
+      <label style="margin-right: 1em"
+        ><input type="checkbox" id="autoPlay" checked /> Auto Play</label
+      >
+      <label style="margin-right: 1em"
+        ><input type="checkbox" id="autoSelect" checked /> Auto Select</label
+      >
+      <label style="margin-right: 1em"
+        ><input type="checkbox" id="autoScroll" checked /> Auto Scroll</label
+      >
+    </div>
 
-  <div id="modeControls" style="margin: 0.5em 0 1em 0;">
-    <label style="margin-right:1em;"><input type="checkbox" id="chordMode" checked> Chord Mode</label>
-    <label style="margin-right:1em;"><input type="checkbox" id="autoPlay" checked> Auto Play</label>
-    <label style="margin-right:1em;"><input type="checkbox" id="autoSelect" checked> Auto Select</label>
-    <label style="margin-right:1em;"><input type="checkbox" id="autoScroll" checked> Auto Scroll</label>
-  </div>
-
-  <div class="controls">
-    <textarea id="noteInput" placeholder="Paste your note table here..." wrap="off">
+    <div class="controls">
+      <textarea
+        id="noteInput"
+        placeholder="Paste your note table here..."
+        wrap="off"
+      >
 | 0 | piano | 11 | 51 | D#3 | 0.15 | 0.143 | 0 | 1 |
 
 | 0 | piano | 11 | 48 | C3 | 0.15 | 0.143 | 0.143 | 1 |
@@ -1258,1291 +1277,1612 @@
 | 0 | piano | 54 | 62 | D4 | 0.15 | 0.143 | 77.571 | 1 |
 
 | 0 | piano | 51 | 60 | C4 | 0.15 | 0.143 | 77.714 | 1 |
-    </textarea><br>
+    </textarea
+      ><br />
 
-    <div id="statusArea" style="margin-top:1em;">
-      <div id="metadataArea" style="margin: 0.75em 0 0.25em 0;"></div>
-      <div id="currentRowStatus" style="margin-bottom:0.5em;"></div>
-    </div>
-
-    <button id="beginBtn" type="button" title="Beginning">⏮</button>
-    <button id="prevBtn" type="button" title="Previous">⇠</button>
-    <button id="playBtn" title="Play/Pause">⏵</button>
-    <button id="nextBtn" type="button" title="Next">⇢</button>
-    <button id="endBtn" type="button" title="End">⏭</button>
-    <button id="insertNotesBtn" type="button">Assign Lanes</button>
-    <button id="clearNotesBtn" type="button">Clear Notes</button>
-    <button id="sortBtn" type="button">Cleanse</button>
-
-    <div style="margin-top:0.75em;">
-      <span style="font-weight:600; margin-right:0.5em;">Transpose</span>
-      <input id="transposeAmount" type="number" min="1" max="12" value="12" style="width:60px;">
-      <button id="higherBtn" type="button">+</button>
-      <button id="lowerBtn" type="button">-</button>
-    </div>
-
-    <div style="margin-top:0.75em; display:flex; align-items:center; gap:0.5em;">
-      <span style="font-weight:600;">Instrument</span>
-      <select id="instrumentSelect"></select>
-      <label>Track <input id="instrumentTrackInput" type="number" min="0" value="0" style="width:30px;"></label>
-      <button id="applyInstrumentBtn" type="button">Apply</button>
-    </div>
-  </div>
-
-  <div id="gameArea" aria-label="Game Area">
-    <div id="gameAreaInner">
-      <div style="display:flex; flex-direction:column; justify-content:flex-start;">
-        <canvas id="gameCanvas" style="width:400px; height:300px;"></canvas>
+      <div id="statusArea" style="margin-top: 1em">
+        <div id="metadataArea" style="margin: 0.75em 0 0.25em 0"></div>
+        <div id="currentRowStatus" style="margin-bottom: 0.5em"></div>
       </div>
-      <div style="display:flex; flex-direction:row; justify-content:flex-start;">
-        <div>
-          <div id="lanePreview"></div>
-          <div id="laneInfo">Select a note row to preview/edit its lane.</div>
+
+      <button id="beginBtn" type="button" title="Beginning">⏮</button>
+      <button id="prevBtn" type="button" title="Previous">⇠</button>
+      <button id="playBtn" title="Play/Pause">⏵</button>
+      <button id="nextBtn" type="button" title="Next">⇢</button>
+      <button id="endBtn" type="button" title="End">⏭</button>
+      <button id="insertNotesBtn" type="button">Assign Lanes</button>
+      <button id="clearNotesBtn" type="button">Clear Notes</button>
+      <button id="sortBtn" type="button">Cleanse</button>
+
+      <div style="margin-top: 0.75em">
+        <span style="font-weight: 600; margin-right: 0.5em">Transpose</span>
+        <input
+          id="transposeAmount"
+          type="number"
+          min="1"
+          max="12"
+          value="12"
+          style="width: 60px"
+        />
+        <button id="higherBtn" type="button">+</button>
+        <button id="lowerBtn" type="button">-</button>
+      </div>
+
+      <div
+        style="
+          margin-top: 0.75em;
+          display: flex;
+          align-items: center;
+          gap: 0.5em;
+        "
+      >
+        <span style="font-weight: 600">Instrument</span>
+        <select id="instrumentSelect"></select>
+        <label
+          >Track
+          <input
+            id="instrumentTrackInput"
+            type="number"
+            min="0"
+            value="0"
+            style="width: 30px"
+        /></label>
+        <button id="applyInstrumentBtn" type="button">Apply</button>
+      </div>
+    </div>
+
+    <div id="gameArea" aria-label="Game Area">
+      <div id="gameAreaInner">
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+          "
+        >
+          <canvas id="gameCanvas" style="width: 400px; height: 300px"></canvas>
         </div>
-        <div style="padding: 0 16px; display:flex; flex-direction:column; justify-content:flex-start;">
-          <div id="laneButtons"></div>
+        <div
+          style="
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-start;
+          "
+        >
+          <div>
+            <div id="lanePreview"></div>
+            <div id="laneInfo">Select a note row to preview/edit its lane.</div>
+          </div>
+          <div
+            style="
+              padding: 0 16px;
+              display: flex;
+              flex-direction: column;
+              justify-content: flex-start;
+            "
+          >
+            <div id="laneButtons"></div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-  <!-- Tone.js CDN -->
-  <script src="https://unpkg.com/tone@next/build/Tone.js"></script>
-  <script src="https://nbrosowsky.github.io/tonejs-instruments/Tonejs-Instruments.js"></script>
+    <!-- Tone.js CDN -->
+    <script src="https://unpkg.com/tone@next/build/Tone.js"></script>
+    <script src="https://nbrosowsky.github.io/tonejs-instruments/Tonejs-Instruments.js"></script>
 
-  <script type="module">
-    function applyInstrumentToTrack() {
-      const textarea = document.getElementById('noteInput');
-      const trackNum = parseInt(document.getElementById('instrumentTrackInput').value, 10);
-      const instrument = document.getElementById('instrumentSelect').value;
-      if (!Number.isFinite(trackNum) || !instrument) return;
-      const lines = textarea.value.split(/\r?\n/);
-      const newLines = lines.map(line => {
-        // Split format: | track | instrument | lane | midi | name | vel | dur | time | [spawn] |
-        // Legacy format: | track | note_XX | midi | name | vel | dur | time | [spawn] |
-        const cols = line.replace(/^\||\|$/g, '').split('|').map(s => s.trim());
-        if (cols.length < 3) return line;
-        if (parseInt(cols[0], 10) !== trackNum) return line;
+    <script type="module">
+      function applyInstrumentToTrack() {
+        const textarea = document.getElementById('noteInput');
+        const trackNum = parseInt(
+          document.getElementById('instrumentTrackInput').value,
+          10
+        );
+        const instrument = document.getElementById('instrumentSelect').value;
+        if (!Number.isFinite(trackNum) || !instrument) return;
+        const lines = textarea.value.split(/\r?\n/);
+        const newLines = lines.map((line) => {
+          // Split format: | track | instrument | lane | midi | name | vel | dur | time | [spawn] |
+          // Legacy format: | track | note_XX | midi | name | vel | dur | time | [spawn] |
+          const cols = line
+            .replace(/^\||\|$/g, '')
+            .split('|')
+            .map((s) => s.trim());
+          if (cols.length < 3) return line;
+          if (parseInt(cols[0], 10) !== trackNum) return line;
 
-        const looksSplit =
+          const looksSplit =
+            cols.length >= 8 &&
+            cols[1] &&
+            !cols[1].startsWith('note_') &&
+            /^\d+$/.test(cols[2] || '') &&
+            /^\d+$/.test(cols[3] || '');
+
+          if (looksSplit) {
+            cols[1] = instrument;
+            return '| ' + cols.join(' | ') + ' |';
+          }
+
+          // Convert legacy row to split format while assigning instrument.
+          const lane = (cols[1]?.match(/^note_(\d\d)$/) || [])[1] || '00';
+          const midi = cols[2] ?? '';
+          const name = cols[3] ?? '';
+          const vel = cols[4] ?? '';
+          const dur = cols[5] ?? '';
+          const time = cols[6] ?? '';
+          const spawn = cols[7] ?? '1';
+          return `| ${cols[0]} | ${instrument} | ${lane} | ${midi} | ${name} | ${vel} | ${dur} | ${time} | ${spawn} |`;
+        });
+        textarea.value = newLines.join('\n');
+        // Optionally, update state/UI
+        pausePlayback();
+        playbackNotes = [];
+        playState.status = 'stopped';
+        playState.hasPreloaded = false;
+        playState.cursor = {
+          lastNoteIdx: null,
+          lastChordIdx: null,
+          lastLineIdx: null,
+          nextStartTime: 0
+        };
+        playback.clearScheduledTimeouts();
+        document.getElementById('currentRowStatus').innerHTML = '';
+        currentNoteIdx = 0;
+        currentChordIdx = 0;
+        updateNavButtons();
+        updateMetadataAndHeader();
+        updateOctaveButtons();
+        renderLaneUIForSelectedLine();
+      }
+
+      // --- Octave shift and button enable/disable logic ---
+      function updateOctaveButtons() {
+        const textarea = document.getElementById('noteInput');
+        const lines = textarea.value.split(/\r?\n/);
+        const amtEl = document.getElementById('transposeAmount');
+        let delta = parseInt(amtEl?.value ?? '12', 10);
+        if (!Number.isFinite(delta)) delta = 12;
+        delta = Math.max(1, Math.min(12, delta));
+        if (amtEl) amtEl.value = String(delta);
+
+        let minKey = Infinity;
+        let maxKey = -Infinity;
+        for (const line of lines) {
+          const cols = line
+            .replace(/^\||\|$/g, '')
+            .split('|')
+            .map((s) => s.trim());
+          if (cols.length < 3) continue;
+          const isSplit =
+            cols.length >= 4 &&
+            cols[1] &&
+            !cols[1].startsWith('note_') &&
+            /^\d+$/.test(cols[2] || '') &&
+            /^\d+$/.test(cols[3] || '');
+          const keyIdx = isSplit ? 3 : 2;
+          if (!/^\d+$/.test(cols[keyIdx] || '')) continue;
+          const key = parseInt(cols[keyIdx], 10);
+          if (!Number.isFinite(key)) continue;
+          minKey = Math.min(minKey, key);
+          maxKey = Math.max(maxKey, key);
+        }
+        const hasAny = minKey !== Infinity && maxKey !== -Infinity;
+        document.getElementById('lowerBtn').disabled =
+          !hasAny || minKey - delta < 21;
+        document.getElementById('higherBtn').disabled =
+          !hasAny || maxKey + delta > 108;
+      }
+
+      function shiftAllNotesOctave(delta) {
+        const textarea = document.getElementById('noteInput');
+        const lines = textarea.value.split(/\r?\n/);
+        const newLines = lines.map((line) => {
+          const cols = line
+            .replace(/^\||\|$/g, '')
+            .split('|')
+            .map((s) => s.trim());
+          if (cols.length < 3) return line;
+          const isSplit =
+            cols.length >= 4 &&
+            cols[1] &&
+            !cols[1].startsWith('note_') &&
+            /^\d+$/.test(cols[2] || '') &&
+            /^\d+$/.test(cols[3] || '');
+          const keyIdx = isSplit ? 3 : 2;
+          if (!/^\d+$/.test(cols[keyIdx] || '')) return line;
+          let key = parseInt(cols[keyIdx], 10) + delta;
+          key = Math.max(21, Math.min(108, key));
+          cols[keyIdx] = key.toString();
+          return '| ' + cols.join(' | ') + ' |';
+        });
+        textarea.value = newLines.join('\n');
+        pausePlayback();
+        playbackNotes = [];
+        playState.status = 'stopped';
+        playState.hasPreloaded = false;
+        playState.cursor = {
+          lastNoteIdx: null,
+          lastChordIdx: null,
+          lastLineIdx: null,
+          nextStartTime: 0
+        };
+        playback.clearScheduledTimeouts();
+        document.getElementById('currentRowStatus').innerHTML = '';
+        currentNoteIdx = 0;
+        currentChordIdx = 0;
+        updateNavButtons();
+        updateMetadataAndHeader();
+        updateOctaveButtons();
+      }
+
+      function getTransposeDelta() {
+        const amtEl = document.getElementById('transposeAmount');
+        let delta = parseInt(amtEl?.value ?? '12', 10);
+        if (!Number.isFinite(delta)) delta = 12;
+        return Math.max(1, Math.min(12, delta));
+      }
+
+      document.getElementById('higherBtn').addEventListener('click', () => {
+        shiftAllNotesOctave(getTransposeDelta());
+      });
+      document.getElementById('lowerBtn').addEventListener('click', () => {
+        shiftAllNotesOctave(-getTransposeDelta());
+      });
+
+      document
+        .getElementById('noteInput')
+        .addEventListener('input', updateOctaveButtons);
+      document
+        .getElementById('transposeAmount')
+        .addEventListener('input', updateOctaveButtons);
+      window.addEventListener('DOMContentLoaded', updateOctaveButtons);
+      import {
+        sortAndFormatNotesTable,
+        midiToFreq,
+        gatherSongMetadata,
+        parseInput,
+        normalizeStartTimes,
+        insertNotesForChords,
+        clearInsertedNotes
+      } from './note-utils.js';
+      import { NotePlayback, midiToNoteName } from './playback.js';
+
+      // State
+      let rowLineMap = [];
+      let noteLineMap = [];
+      let currentNoteIdx = 0;
+      let playbackNotes = [];
+      let chordStartIndices = [];
+      let currentChordIdx = 0;
+      let chordIndexByStartNoteIdx = new Map();
+      const playState = {
+        status: 'stopped', // 'stopped' | 'playing' | 'paused'
+        hasPreloaded: false,
+        seekWhilePaused: false,
+        cursor: {
+          lastNoteIdx: null,
+          lastChordIdx: null,
+          lastLineIdx: null,
+          nextStartTime: 0
+        }
+      };
+      let isSnappingSelection = false;
+      let parseDebounceTimer = null;
+      const playback = new NotePlayback();
+
+      async function playNoteCompat(note) {
+        if (typeof playback.triggerNote === 'function') {
+          await playback.triggerNote(note);
+          return;
+        }
+        // Backward-compat fallback if an older cached playback.js is loaded.
+        await playback.loadPiano();
+        const name = midiToNoteName(note?.midi);
+        if (!name || !playback.sampler) return;
+        playback.sampler.triggerAttackRelease(name, note.duration);
+      }
+
+      // UI helpers
+      function updateMetadataAndHeader() {
+        const textarea = document.getElementById('noteInput');
+        const meta = gatherSongMetadata(textarea.value);
+        const metaDiv = document.getElementById('metadataArea');
+        metaDiv.innerHTML = `<b>Notes:</b> ${meta.noteCount} &nbsp; <b>Chords:</b> ${meta.chordCount} &nbsp; <b>Tracks:</b> ${meta.trackCount} &nbsp; <b>Duration:</b> ${meta.duration.toFixed(2)}s`;
+        // Update header with current position
+        const header = document.getElementById('mainHeader');
+        const chordMode = document.getElementById('chordMode').checked;
+        let title = 'Note Explorer';
+        if (chordMode && chordStartIndices.length > 0) {
+          let total = chordStartIndices.length;
+          let pos = currentChordIdx + 1;
+          if (total === 0) {
+            header.textContent = 'Note Explorer';
+          } else {
+            title = `Note Explorer - Chord ${pos} of ${total}`;
+            header.textContent = title;
+          }
+        } else {
+          let total = meta.noteCount;
+          let pos = currentNoteIdx + 1;
+          if (total === 0) {
+            header.textContent = 'Note Explorer';
+          } else {
+            title = `Note Explorer - ${pos} of ${total}`;
+            header.textContent = title;
+          }
+        }
+        document.title = title;
+      }
+
+      async function selectNoteAt(idx, play = false, chordModeOverride = null) {
+        const textarea = document.getElementById('noteInput');
+        const lines = textarea.value.split(/\r?\n/);
+        if (!noteLineMap.length) return;
+        idx = Math.max(0, Math.min(noteLineMap.length - 1, idx));
+        let lineIdx = noteLineMap[idx];
+        let startIdx = 0;
+        for (let i = 0; i < lineIdx; ++i) startIdx += lines[i].length + 1;
+        textarea.focus();
+        textarea.setSelectionRange(startIdx, startIdx + lines[lineIdx].length);
+        // Scroll textarea to make selection visible (centered).
+        scrollTextareaToLine(textarea, lineIdx);
+        currentNoteIdx = idx;
+        // Update currentChordIdx if in chord mode
+        const chordMode =
+          chordModeOverride !== null
+            ? chordModeOverride
+            : document.getElementById('chordMode').checked;
+        if (chordMode && chordStartIndices.length > 0) {
+          currentChordIdx = chordStartIndices.findIndex((i) => i === idx);
+        }
+        updateMetadataAndHeader();
+        updateNavButtons();
+        renderLaneUIForSelectedLine();
+        if (play && playbackNotes.length) {
+          if (chordMode) {
+            // Play all notes at the same start time as the selected note
+            const chordTime = playbackNotes[idx].start;
+            const chordNotes = playbackNotes.filter(
+              (n) => n.start === chordTime
+            );
+            await playback.preloadNotes(chordNotes);
+            await new Promise((res) => setTimeout(res, 100));
+            for (const note of chordNotes) {
+              await playNoteCompat(note);
+            }
+          } else {
+            await playback.preloadNotes([playbackNotes[idx]]);
+            await new Promise((res) => setTimeout(res, 100));
+            await playNoteCompat(playbackNotes[idx]);
+          }
+        }
+      }
+
+      function updateNavButtons() {
+        if (
+          !noteLineMap.length &&
+          document.getElementById('noteInput').value.trim().length > 0
+        ) {
+          // Keep nav responsive after paste even before first play.
+          ensureParsedFromTextarea();
+        }
+        const chordMode = document.getElementById('chordMode').checked;
+        if (chordMode && chordStartIndices.length > 0) {
+          document.getElementById('prevBtn').disabled = currentChordIdx <= 0;
+          document.getElementById('nextBtn').disabled =
+            currentChordIdx >= chordStartIndices.length - 1;
+        } else {
+          document.getElementById('prevBtn').disabled = currentNoteIdx <= 0;
+          document.getElementById('nextBtn').disabled =
+            currentNoteIdx >= noteLineMap.length - 1;
+        }
+      }
+
+      function getSelectedLineContext() {
+        const textarea = document.getElementById('noteInput');
+        const text = textarea.value;
+        const caret = textarea.selectionStart ?? 0;
+        const { start, end } = getLineBoundsFromCharIndex(text, caret);
+        const lineIdx = getLineIndexFromCharIndex(text, start);
+        const line = text.slice(start, end);
+        return { textarea, text, start, end, lineIdx, line };
+      }
+
+      function parseTableLine(line) {
+        const cols = line
+          .replace(/^\||\|$/g, '')
+          .split('|')
+          .map((s) => s.trim());
+        return cols;
+      }
+
+      function isSplitLaneFormat(cols) {
+        return (
           cols.length >= 8 &&
           cols[1] &&
           !cols[1].startsWith('note_') &&
           /^\d+$/.test(cols[2] || '') &&
-          /^\d+$/.test(cols[3] || '');
-
-        if (looksSplit) {
-          cols[1] = instrument;
-          return '| ' + cols.join(' | ') + ' |';
-        }
-
-        // Convert legacy row to split format while assigning instrument.
-        const lane = (cols[1]?.match(/^note_(\d\d)$/) || [])[1] || '00';
-        const midi = cols[2] ?? '';
-        const name = cols[3] ?? '';
-        const vel = cols[4] ?? '';
-        const dur = cols[5] ?? '';
-        const time = cols[6] ?? '';
-        const spawn = cols[7] ?? '1';
-        return `| ${cols[0]} | ${instrument} | ${lane} | ${midi} | ${name} | ${vel} | ${dur} | ${time} | ${spawn} |`;
-      });
-      textarea.value = newLines.join('\n');
-      // Optionally, update state/UI
-      pausePlayback();
-      playbackNotes = [];
-      playState.status = 'stopped';
-      playState.hasPreloaded = false;
-      playState.cursor = { lastNoteIdx: null, lastChordIdx: null, lastLineIdx: null, nextStartTime: 0 };
-      playback.clearScheduledTimeouts();
-      document.getElementById('currentRowStatus').innerHTML = '';
-      currentNoteIdx = 0;
-      currentChordIdx = 0;
-      updateNavButtons();
-      updateMetadataAndHeader();
-      updateOctaveButtons();
-      renderLaneUIForSelectedLine();
-    }
-
-    // --- Octave shift and button enable/disable logic ---
-    function updateOctaveButtons() {
-      const textarea = document.getElementById('noteInput');
-      const lines = textarea.value.split(/\r?\n/);
-      const amtEl = document.getElementById('transposeAmount');
-      let delta = parseInt(amtEl?.value ?? '12', 10);
-      if (!Number.isFinite(delta)) delta = 12;
-      delta = Math.max(1, Math.min(12, delta));
-      if (amtEl) amtEl.value = String(delta);
-
-      let minKey = Infinity;
-      let maxKey = -Infinity;
-      for (const line of lines) {
-        const cols = line.replace(/^\||\|$/g, '').split('|').map(s => s.trim());
-        if (cols.length < 3) continue;
-        const isSplit = cols.length >= 4 && cols[1] && !cols[1].startsWith('note_') && /^\d+$/.test(cols[2] || '') && /^\d+$/.test(cols[3] || '');
-        const keyIdx = isSplit ? 3 : 2;
-        if (!/^\d+$/.test(cols[keyIdx] || '')) continue;
-        const key = parseInt(cols[keyIdx], 10);
-        if (!Number.isFinite(key)) continue;
-        minKey = Math.min(minKey, key);
-        maxKey = Math.max(maxKey, key);
+          /^\d+$/.test(cols[3] || '')
+        );
       }
-      const hasAny = minKey !== Infinity && maxKey !== -Infinity;
-      document.getElementById('lowerBtn').disabled = !hasAny || (minKey - delta < 21);
-      document.getElementById('higherBtn').disabled = !hasAny || (maxKey + delta > 108);
-    }
 
-    function shiftAllNotesOctave(delta) {
-      const textarea = document.getElementById('noteInput');
-      const lines = textarea.value.split(/\r?\n/);
-      const newLines = lines.map(line => {
-        const cols = line.replace(/^\||\|$/g, '').split('|').map(s => s.trim());
-        if (cols.length < 3) return line;
-        const isSplit = cols.length >= 4 && cols[1] && !cols[1].startsWith('note_') && /^\d+$/.test(cols[2] || '') && /^\d+$/.test(cols[3] || '');
-        const keyIdx = isSplit ? 3 : 2;
-        if (!/^\d+$/.test(cols[keyIdx] || '')) return line;
-        let key = parseInt(cols[keyIdx], 10) + delta;
-        key = Math.max(21, Math.min(108, key));
-        cols[keyIdx] = key.toString();
+      function formatTableLine(cols) {
         return '| ' + cols.join(' | ') + ' |';
-      });
-      textarea.value = newLines.join('\n');
-      pausePlayback();
-      playbackNotes = [];
-      playState.status = 'stopped';
-      playState.hasPreloaded = false;
-      playState.cursor = { lastNoteIdx: null, lastChordIdx: null, lastLineIdx: null, nextStartTime: 0 };
-      playback.clearScheduledTimeouts();
-      document.getElementById('currentRowStatus').innerHTML = '';
-      currentNoteIdx = 0;
-      currentChordIdx = 0;
-      updateNavButtons();
-      updateMetadataAndHeader();
-      updateOctaveButtons();
-    }
-
-    function getTransposeDelta() {
-      const amtEl = document.getElementById('transposeAmount');
-      let delta = parseInt(amtEl?.value ?? '12', 10);
-      if (!Number.isFinite(delta)) delta = 12;
-      return Math.max(1, Math.min(12, delta));
-    }
-
-    document.getElementById('higherBtn').addEventListener('click', () => {
-      shiftAllNotesOctave(getTransposeDelta());
-    });
-    document.getElementById('lowerBtn').addEventListener('click', () => {
-      shiftAllNotesOctave(-getTransposeDelta());
-    });
-
-    document.getElementById('noteInput').addEventListener('input', updateOctaveButtons);
-    document.getElementById('transposeAmount').addEventListener('input', updateOctaveButtons);
-    window.addEventListener('DOMContentLoaded', updateOctaveButtons);
-    import {
-      sortAndFormatNotesTable,
-      midiToFreq,
-      gatherSongMetadata,
-      parseInput,
-      normalizeStartTimes,
-      insertNotesForChords,
-      clearInsertedNotes
-    } from './note-utils.js';
-    import { NotePlayback, midiToNoteName } from './playback.js';
-
-    // State
-    let rowLineMap = [];
-    let noteLineMap = [];
-    let currentNoteIdx = 0;
-    let playbackNotes = [];
-    let chordStartIndices = [];
-    let currentChordIdx = 0;
-    let chordIndexByStartNoteIdx = new Map();
-    const playState = {
-      status: 'stopped', // 'stopped' | 'playing' | 'paused'
-      hasPreloaded: false,
-      seekWhilePaused: false,
-      cursor: {
-        lastNoteIdx: null,
-        lastChordIdx: null,
-        lastLineIdx: null,
-        nextStartTime: 0,
-      },
-    };
-    let isSnappingSelection = false;
-    let parseDebounceTimer = null;
-    const playback = new NotePlayback();
-
-    async function playNoteCompat(note) {
-      if (typeof playback.triggerNote === 'function') {
-        await playback.triggerNote(note);
-        return;
       }
-      // Backward-compat fallback if an older cached playback.js is loaded.
-      await playback.loadPiano();
-      const name = midiToNoteName(note?.midi);
-      if (!name || !playback.sampler) return;
-      playback.sampler.triggerAttackRelease(name, note.duration);
-    }
 
-    // UI helpers
-    function updateMetadataAndHeader() {
-      const textarea = document.getElementById('noteInput');
-      const meta = gatherSongMetadata(textarea.value);
-      const metaDiv = document.getElementById('metadataArea');
-      metaDiv.innerHTML =
-        `<b>Notes:</b> ${meta.noteCount} &nbsp; <b>Chords:</b> ${meta.chordCount} &nbsp; <b>Tracks:</b> ${meta.trackCount} &nbsp; <b>Duration:</b> ${meta.duration.toFixed(2)}s`;
-      // Update header with current position
-      const header = document.getElementById('mainHeader');
-      const chordMode = document.getElementById('chordMode').checked;
-      let title = 'Note Explorer';
-      if (chordMode && chordStartIndices.length > 0) {
-        let total = chordStartIndices.length;
-        let pos = (currentChordIdx + 1);
-        if (total === 0) {
-          header.textContent = 'Note Explorer';
-        } else {
-          title = `Note Explorer - Chord ${pos} of ${total}`;
-          header.textContent = title;
+      function getLaneFromLine(line) {
+        const cols = parseTableLine(line);
+        if (isSplitLaneFormat(cols)) {
+          const lane = parseInt(cols[2] || '0', 10);
+          return Number.isFinite(lane) ? lane : 0;
         }
-      } else {
-        let total = meta.noteCount;
-        let pos = (currentNoteIdx + 1);
-        if (total === 0) {
-          header.textContent = 'Note Explorer';
-        } else {
-          title = `Note Explorer - ${pos} of ${total}`;
-          header.textContent = title;
-        }
+        const ev = cols[1] || '';
+        const m = ev.match(/^note_(\d\d)$/);
+        return m ? parseInt(m[1], 10) : 0;
       }
-      document.title = title;
-    }
 
-    async function selectNoteAt(idx, play = false, chordModeOverride = null) {
-      const textarea = document.getElementById('noteInput');
-      const lines = textarea.value.split(/\r?\n/);
-      if (!noteLineMap.length) return;
-      idx = Math.max(0, Math.min(noteLineMap.length - 1, idx));
-      let lineIdx = noteLineMap[idx];
-      let startIdx = 0;
-      for (let i = 0; i < lineIdx; ++i) startIdx += lines[i].length + 1;
-      textarea.focus();
-      textarea.setSelectionRange(startIdx, startIdx + lines[lineIdx].length);
-      // Scroll textarea to make selection visible (centered).
-      scrollTextareaToLine(textarea, lineIdx);
-      currentNoteIdx = idx;
-      // Update currentChordIdx if in chord mode
-      const chordMode = chordModeOverride !== null ? chordModeOverride : document.getElementById('chordMode').checked;
-      if (chordMode && chordStartIndices.length > 0) {
-        currentChordIdx = chordStartIndices.findIndex(i => i === idx);
+      function setSelectedRowLane(laneNumber) {
+        const { textarea, text, start, end, lineIdx, line } =
+          getSelectedLineContext();
+        const cols = parseTableLine(line);
+        if (cols.length < 7) return;
+        const laneStr = String(laneNumber).padStart(2, '0');
+        if (isSplitLaneFormat(cols)) {
+          if (!/^\d+$/.test(cols[3] || '')) return;
+          cols[1] = cols[1] || 'piano';
+          cols[2] = laneStr;
+        } else {
+          if (!/^\d+$/.test(cols[2] || '')) return;
+          cols[1] = `note_${laneStr}`;
+        }
+        const newLine = formatTableLine(cols);
+        const newText = text.slice(0, start) + newLine + text.slice(end);
+        textarea.value = newText;
+        textarea.focus();
+        textarea.setSelectionRange(start, start + newLine.length);
+
+        // Recompute playback/navigation state based on updated table.
+        const parsed = parseInput(textarea.value);
+        playbackNotes = normalizeStartTimes(parsed.notes);
+        rowLineMap = parsed.rowLineMap;
+        noteLineMap = parsed.noteLineMap;
+        computeChordStartIndices();
+        playState.status = 'stopped';
+        playState.hasPreloaded = false;
+        playState.cursor = {
+          lastNoteIdx: null,
+          lastChordIdx: null,
+          lastLineIdx: null,
+          nextStartTime: 0
+        };
+
+        const noteIdx = findNoteIdxByLineIdx(lineIdx);
+        if (noteIdx !== null) {
+          currentNoteIdx = noteIdx;
+          if (document.getElementById('chordMode').checked)
+            currentChordIdx = chordIdxForNoteIdx(noteIdx) ?? currentChordIdx;
+        }
+        updateNavButtons();
+        updateMetadataAndHeader();
+        renderLaneUIForSelectedLine();
       }
-      updateMetadataAndHeader();
-      updateNavButtons();
-      renderLaneUIForSelectedLine();
-      if (play && playbackNotes.length) {
-        if (chordMode) {
-          // Play all notes at the same start time as the selected note
-          const chordTime = playbackNotes[idx].start;
-          const chordNotes = playbackNotes.filter(n => n.start === chordTime);
-          await playback.preloadNotes(chordNotes);
-          await new Promise(res => setTimeout(res, 100));
-          for (const note of chordNotes) {
-            await playNoteCompat(note);
+
+      function laneDescriptor(lane) {
+        if (!lane || lane === 0)
+          return {
+            label: '00 (note hidden)',
+            color: '#666',
+            from: null,
+            to: null
+          };
+        const start = {
+          TL: { x: 8, y: 12 },
+          TR: { x: 92, y: 12 },
+          BL: { x: 8, y: 88 },
+          BR: { x: 92, y: 88 }
+        };
+        const end = {
+          TOP: { x: 50, y: 12 },
+          LEFT: { x: 8, y: 50 },
+          RIGHT: { x: 92, y: 50 },
+          DOWN: { x: 50, y: 88 },
+          MID: { x: 50, y: 50 }
+        };
+        const map = {
+          11: {
+            from: start.TL,
+            to: end.TOP,
+            label: '11 (TL → UP)',
+            color: '#c62828'
+          },
+          12: {
+            from: start.TR,
+            to: end.TOP,
+            label: '12 (TR → UP)',
+            color: '#c62828'
+          },
+          21: {
+            from: start.TL,
+            to: end.LEFT,
+            label: '21 (TL → LEFT)',
+            color: '#f9a825'
+          },
+          22: {
+            from: start.BL,
+            to: end.LEFT,
+            label: '22 (BL → LEFT)',
+            color: '#f9a825'
+          },
+          31: {
+            from: start.TR,
+            to: end.RIGHT,
+            label: '31 (TR → RIGHT)',
+            color: '#1e88e5'
+          },
+          32: {
+            from: start.BR,
+            to: end.RIGHT,
+            label: '32 (BR → RIGHT)',
+            color: '#1e88e5'
+          },
+          41: {
+            from: start.BL,
+            to: end.DOWN,
+            label: '41 (BL → DOWN)',
+            color: '#43a047'
+          },
+          42: {
+            from: start.BR,
+            to: end.DOWN,
+            label: '42 (BR → DOWN)',
+            color: '#43a047'
+          },
+          51: {
+            from: start.TL,
+            to: end.MID,
+            label: '51 (TL → MID)',
+            color: '#9e9e9e'
+          },
+          52: {
+            from: start.TR,
+            to: end.MID,
+            label: '52 (TR → MID)',
+            color: '#9e9e9e'
+          },
+          53: {
+            from: start.BR,
+            to: end.MID,
+            label: '53 (BR → MID)',
+            color: '#9e9e9e'
+          },
+          54: {
+            from: start.BL,
+            to: end.MID,
+            label: '54 (BL → MID)',
+            color: '#9e9e9e'
           }
-        } else {
-          await playback.preloadNotes([playbackNotes[idx]]);
-          await new Promise(res => setTimeout(res, 100));
-          await playNoteCompat(playbackNotes[idx]);
+        };
+        return (
+          map[lane] || {
+            label: `note_${lane} (unknown)`,
+            color: '#fff',
+            from: null,
+            to: null
+          }
+        );
+      }
+
+      function parseGameNotesFromTextarea() {
+        const textarea = document.getElementById('noteInput');
+        const lines = textarea.value.split(/\r?\n/);
+        const notes = [];
+        for (let i = 0; i < lines.length; i++) {
+          const cols = lines[i]
+            .replace(/^\||\|$/g, '')
+            .split('|')
+            .map((s) => s.trim());
+          if (cols.length < 9) continue;
+          // Expected format: | track | instrument | lane | midi | name | vel | dur | time | spawn |
+          const lane = parseInt(cols[2] || '0', 10);
+          if (!Number.isFinite(lane) || lane === 0) continue;
+          const midi = parseInt(cols[3] || '', 10);
+          if (!Number.isFinite(midi)) continue;
+          const time = parseFloat(cols[7]);
+          const spawn = parseFloat(cols[8]);
+          if (!Number.isFinite(time) || !Number.isFinite(spawn) || spawn <= 0)
+            continue;
+          notes.push({ lane, midi, time, spawn });
         }
+        return notes;
       }
-    }
 
-    function updateNavButtons() {
-      if (!noteLineMap.length && document.getElementById('noteInput').value.trim().length > 0) {
-        // Keep nav responsive after paste even before first play.
-        ensureParsedFromTextarea();
+      function getCurrentSongTime() {
+        if (playState.status === 'playing')
+          return playback.getCurrentPlaybackTime();
+        if (playState.status === 'paused')
+          return playback.getCurrentPlaybackTime();
+        const mode = getMode();
+        if (mode === 'chord')
+          return getStartTimeForChordIndex(Math.max(0, currentChordIdx));
+        return getStartTimeForNoteIndex(Math.max(0, currentNoteIdx));
       }
-      const chordMode = document.getElementById('chordMode').checked;
-      if (chordMode && chordStartIndices.length > 0) {
-        document.getElementById('prevBtn').disabled = (currentChordIdx <= 0);
-        document.getElementById('nextBtn').disabled = (currentChordIdx >= chordStartIndices.length - 1);
-      } else {
-        document.getElementById('prevBtn').disabled = (currentNoteIdx <= 0);
-        document.getElementById('nextBtn').disabled = (currentNoteIdx >= noteLineMap.length - 1);
+
+      function noteSizePx(midi) {
+        // 21 (A0) => 20px, 108 (C8) => 8px
+        const t = (midi - 21) / (108 - 21);
+        const clamped = Math.max(0, Math.min(1, t));
+        return 20 - clamped * 12;
       }
-    }
 
-    function getSelectedLineContext() {
-      const textarea = document.getElementById('noteInput');
-      const text = textarea.value;
-      const caret = textarea.selectionStart ?? 0;
-      const { start, end } = getLineBoundsFromCharIndex(text, caret);
-      const lineIdx = getLineIndexFromCharIndex(text, start);
-      const line = text.slice(start, end);
-      return { textarea, text, start, end, lineIdx, line };
-    }
+      function drawGameFrame(ctx, canvas, gameNotes, nowSeconds) {
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
 
-    function parseTableLine(line) {
-      const cols = line
-        .replace(/^\||\|$/g, '')
-        .split('|')
-        .map(s => s.trim());
-      return cols;
-    }
-
-    function isSplitLaneFormat(cols) {
-      return (
-        cols.length >= 8 &&
-        cols[1] &&
-        !cols[1].startsWith('note_') &&
-        /^\d+$/.test(cols[2] || '') &&
-        /^\d+$/.test(cols[3] || '')
-      );
-    }
-
-    function formatTableLine(cols) {
-      return '| ' + cols.join(' | ') + ' |';
-    }
-
-    function getLaneFromLine(line) {
-      const cols = parseTableLine(line);
-      if (isSplitLaneFormat(cols)) {
-        const lane = parseInt(cols[2] || '0', 10);
-        return Number.isFinite(lane) ? lane : 0;
-      }
-      const ev = cols[1] || '';
-      const m = ev.match(/^note_(\d\d)$/);
-      return m ? parseInt(m[1], 10) : 0;
-    }
-
-    function setSelectedRowLane(laneNumber) {
-      const { textarea, text, start, end, lineIdx, line } = getSelectedLineContext();
-      const cols = parseTableLine(line);
-      if (cols.length < 7) return;
-      const laneStr = String(laneNumber).padStart(2, '0');
-      if (isSplitLaneFormat(cols)) {
-        if (!/^\d+$/.test(cols[3] || '')) return;
-        cols[1] = cols[1] || 'piano';
-        cols[2] = laneStr;
-      } else {
-        if (!/^\d+$/.test(cols[2] || '')) return;
-        cols[1] = `note_${laneStr}`;
-      }
-      const newLine = formatTableLine(cols);
-      const newText = text.slice(0, start) + newLine + text.slice(end);
-      textarea.value = newText;
-      textarea.focus();
-      textarea.setSelectionRange(start, start + newLine.length);
-
-      // Recompute playback/navigation state based on updated table.
-      const parsed = parseInput(textarea.value);
-      playbackNotes = normalizeStartTimes(parsed.notes);
-      rowLineMap = parsed.rowLineMap;
-      noteLineMap = parsed.noteLineMap;
-      computeChordStartIndices();
-      playState.status = 'stopped';
-      playState.hasPreloaded = false;
-      playState.cursor = { lastNoteIdx: null, lastChordIdx: null, lastLineIdx: null, nextStartTime: 0 };
-
-      const noteIdx = findNoteIdxByLineIdx(lineIdx);
-      if (noteIdx !== null) {
-        currentNoteIdx = noteIdx;
-        if (document.getElementById('chordMode').checked) currentChordIdx = chordIdxForNoteIdx(noteIdx) ?? currentChordIdx;
-      }
-      updateNavButtons();
-      updateMetadataAndHeader();
-      renderLaneUIForSelectedLine();
-    }
-
-    function laneDescriptor(lane) {
-      if (!lane || lane === 0) return { label: '00 (note hidden)', color: '#666', from: null, to: null };
-      const start = {
-        TL: { x: 8, y: 12 },
-        TR: { x: 92, y: 12 },
-        BL: { x: 8, y: 88 },
-        BR: { x: 92, y: 88 },
-      };
-      const end = {
-        TOP: { x: 50, y: 12 },
-        LEFT: { x: 8, y: 50 },
-        RIGHT: { x: 92, y: 50 },
-        DOWN: { x: 50, y: 88 },
-        MID: { x: 50, y: 50 },
-      };
-      const map = {
-        11: { from: start.TL, to: end.TOP, label: '11 (TL → UP)', color: '#c62828' },
-        12: { from: start.TR, to: end.TOP, label: '12 (TR → UP)', color: '#c62828' },
-        21: { from: start.TL, to: end.LEFT, label: '21 (TL → LEFT)', color: '#f9a825' },
-        22: { from: start.BL, to: end.LEFT, label: '22 (BL → LEFT)', color: '#f9a825' },
-        31: { from: start.TR, to: end.RIGHT, label: '31 (TR → RIGHT)', color: '#1e88e5' },
-        32: { from: start.BR, to: end.RIGHT, label: '32 (BR → RIGHT)', color: '#1e88e5' },
-        41: { from: start.BL, to: end.DOWN, label: '41 (BL → DOWN)', color: '#43a047' },
-        42: { from: start.BR, to: end.DOWN, label: '42 (BR → DOWN)', color: '#43a047' },
-        51: { from: start.TL, to: end.MID, label: '51 (TL → MID)', color: '#9e9e9e' },
-        52: { from: start.TR, to: end.MID, label: '52 (TR → MID)', color: '#9e9e9e' },
-        53: { from: start.BR, to: end.MID, label: '53 (BR → MID)', color: '#9e9e9e' },
-        54: { from: start.BL, to: end.MID, label: '54 (BL → MID)', color: '#9e9e9e' },
-      };
-      return map[lane] || { label: `note_${lane} (unknown)`, color: '#fff', from: null, to: null };
-    }
-
-    function parseGameNotesFromTextarea() {
-      const textarea = document.getElementById('noteInput');
-      const lines = textarea.value.split(/\r?\n/);
-      const notes = [];
-      for (let i = 0; i < lines.length; i++) {
-        const cols = lines[i].replace(/^\||\|$/g, '').split('|').map(s => s.trim());
-        if (cols.length < 9) continue;
-        // Expected format: | track | instrument | lane | midi | name | vel | dur | time | spawn |
-        const lane = parseInt(cols[2] || '0', 10);
-        if (!Number.isFinite(lane) || lane === 0) continue;
-        const midi = parseInt(cols[3] || '', 10);
-        if (!Number.isFinite(midi)) continue;
-        const time = parseFloat(cols[7]);
-        const spawn = parseFloat(cols[8]);
-        if (!Number.isFinite(time) || !Number.isFinite(spawn) || spawn <= 0) continue;
-        notes.push({ lane, midi, time, spawn });
-      }
-      return notes;
-    }
-
-    function getCurrentSongTime() {
-      if (playState.status === 'playing') return playback.getCurrentPlaybackTime();
-      if (playState.status === 'paused') return playback.getCurrentPlaybackTime();
-      const mode = getMode();
-      if (mode === 'chord') return getStartTimeForChordIndex(Math.max(0, currentChordIdx));
-      return getStartTimeForNoteIndex(Math.max(0, currentNoteIdx));
-    }
-
-    function noteSizePx(midi) {
-      // 21 (A0) => 20px, 108 (C8) => 8px
-      const t = (midi - 21) / (108 - 21);
-      const clamped = Math.max(0, Math.min(1, t));
-      return 20 - clamped * 12;
-    }
-
-    function drawGameFrame(ctx, canvas, gameNotes, nowSeconds) {
-      const w = canvas.width;
-      const h = canvas.height;
-      ctx.clearRect(0, 0, w, h);
-
-      const dpr = window.devicePixelRatio || 1;
-      // Draw target squares (outline only, smaller than typical notes)
-      const targets = [
-        { x: 0.5, y: 0.12, color: '#c62828' }, // UP
-        { x: 0.08, y: 0.5, color: '#f9a825' }, // LEFT
-        { x: 0.92, y: 0.5, color: '#1e88e5' }, // RIGHT
-        { x: 0.5, y: 0.88, color: '#43a047' }, // DOWN
-        { x: 0.5, y: 0.5, color: '#9e9e9e' }, // MID
-      ];
-      const targetSize = 24 * dpr;
-      ctx.globalAlpha = 0.85;
-      for (let i = 0; i < targets.length; i++) {
-        const t = targets[i];
-        ctx.strokeStyle = t.color;
-        ctx.lineWidth = 3 * dpr;
-        const cx = t.x * w;
-        const cy = t.y * h;
-        if (i === 4) {
-          // Center target as a diamond (rotated square).
-          ctx.save();
-          ctx.translate(cx, cy);
-          ctx.rotate(Math.PI / 4);
-          ctx.strokeRect(-targetSize / 2, -targetSize / 2, targetSize, targetSize);
-          ctx.restore();
-        } else {
-          ctx.strokeRect(cx - targetSize / 2, cy - targetSize / 2, targetSize, targetSize);
-        }
-      }
-      ctx.globalAlpha = 1;
-
-      // Draw notes (only once they have spawned).
-      for (const n of gameNotes) {
-        const appearAt = n.time - n.spawn;
-        if (nowSeconds < appearAt) continue;
-        // Hide after hit time.
-        if (nowSeconds > n.time) continue;
-
-        const desc = laneDescriptor(n.lane);
-        if (!desc.from || !desc.to) continue;
-        const from = { x: (desc.from.x / 100) * w, y: (desc.from.y / 100) * h };
-        const to = { x: (desc.to.x / 100) * w, y: (desc.to.y / 100) * h };
-
-        let progress = (nowSeconds - appearAt) / n.spawn;
-        progress = Math.max(0, Math.min(1, progress));
-        const x = from.x + (to.x - from.x) * progress;
-        const y = from.y + (to.y - from.y) * progress;
-
-        const r = (noteSizePx(n.midi) / 2) * dpr;
-        ctx.beginPath();
-        ctx.fillStyle = desc.color;
-        ctx.arc(x, y, r, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(255,255,255,0.55)';
-        ctx.lineWidth = 1.5 * (window.devicePixelRatio || 1);
-        ctx.stroke();
-      }
-    }
-
-    function startGameRenderLoop() {
-      const canvas = document.getElementById('gameCanvas');
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-
-      const resize = () => {
-        // Treat CSS size as authoritative.
-        const rect = canvas.getBoundingClientRect();
         const dpr = window.devicePixelRatio || 1;
-        const newW = Math.max(1, Math.floor(rect.width * dpr));
-        const newH = Math.max(1, Math.floor(rect.height * dpr));
-        if (canvas.width !== newW || canvas.height !== newH) {
-          canvas.width = newW;
-          canvas.height = newH;
+        // Draw target squares (outline only, smaller than typical notes)
+        const targets = [
+          { x: 0.5, y: 0.12, color: '#c62828' }, // UP
+          { x: 0.08, y: 0.5, color: '#f9a825' }, // LEFT
+          { x: 0.92, y: 0.5, color: '#1e88e5' }, // RIGHT
+          { x: 0.5, y: 0.88, color: '#43a047' }, // DOWN
+          { x: 0.5, y: 0.5, color: '#9e9e9e' } // MID
+        ];
+        const targetSize = 24 * dpr;
+        ctx.globalAlpha = 0.85;
+        for (let i = 0; i < targets.length; i++) {
+          const t = targets[i];
+          ctx.strokeStyle = t.color;
+          ctx.lineWidth = 3 * dpr;
+          const cx = t.x * w;
+          const cy = t.y * h;
+          if (i === 4) {
+            // Center target as a diamond (rotated square).
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(Math.PI / 4);
+            ctx.strokeRect(
+              -targetSize / 2,
+              -targetSize / 2,
+              targetSize,
+              targetSize
+            );
+            ctx.restore();
+          } else {
+            ctx.strokeRect(
+              cx - targetSize / 2,
+              cy - targetSize / 2,
+              targetSize,
+              targetSize
+            );
+          }
         }
-      };
+        ctx.globalAlpha = 1;
 
-      let cachedNotes = [];
-      let cachedText = null;
-      const tick = () => {
-        resize();
-        const text = document.getElementById('noteInput').value;
-        if (text !== cachedText) {
-          cachedText = text;
-          cachedNotes = parseGameNotesFromTextarea();
+        // Draw notes (only once they have spawned).
+        for (const n of gameNotes) {
+          const appearAt = n.time - n.spawn;
+          if (nowSeconds < appearAt) continue;
+          // Hide after hit time.
+          if (nowSeconds > n.time) continue;
+
+          const desc = laneDescriptor(n.lane);
+          if (!desc.from || !desc.to) continue;
+          const from = {
+            x: (desc.from.x / 100) * w,
+            y: (desc.from.y / 100) * h
+          };
+          const to = { x: (desc.to.x / 100) * w, y: (desc.to.y / 100) * h };
+
+          let progress = (nowSeconds - appearAt) / n.spawn;
+          progress = Math.max(0, Math.min(1, progress));
+          const x = from.x + (to.x - from.x) * progress;
+          const y = from.y + (to.y - from.y) * progress;
+
+          const r = (noteSizePx(n.midi) / 2) * dpr;
+          ctx.beginPath();
+          ctx.fillStyle = desc.color;
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+          ctx.lineWidth = 1.5 * (window.devicePixelRatio || 1);
+          ctx.stroke();
         }
-        const nowSeconds = getCurrentSongTime();
-        drawGameFrame(ctx, canvas, cachedNotes, nowSeconds);
+      }
+
+      function startGameRenderLoop() {
+        const canvas = document.getElementById('gameCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const resize = () => {
+          // Treat CSS size as authoritative.
+          const rect = canvas.getBoundingClientRect();
+          const dpr = window.devicePixelRatio || 1;
+          const newW = Math.max(1, Math.floor(rect.width * dpr));
+          const newH = Math.max(1, Math.floor(rect.height * dpr));
+          if (canvas.width !== newW || canvas.height !== newH) {
+            canvas.width = newW;
+            canvas.height = newH;
+          }
+        };
+
+        let cachedNotes = [];
+        let cachedText = null;
+        const tick = () => {
+          resize();
+          const text = document.getElementById('noteInput').value;
+          if (text !== cachedText) {
+            cachedText = text;
+            cachedNotes = parseGameNotesFromTextarea();
+          }
+          const nowSeconds = getCurrentSongTime();
+          drawGameFrame(ctx, canvas, cachedNotes, nowSeconds);
+          requestAnimationFrame(tick);
+        };
         requestAnimationFrame(tick);
-      };
-      requestAnimationFrame(tick);
-      window.addEventListener('resize', resize);
-    }
-
-    function renderLanePreview(lane) {
-      const preview = document.getElementById('lanePreview');
-      const info = document.getElementById('laneInfo');
-      if (!preview || !info) return;
-      preview.innerHTML = '';
-      const desc = laneDescriptor(lane);
-      info.textContent = desc.label;
-      if (!desc.from || !desc.to) return;
-
-      const dotFrom = document.createElement('div');
-      dotFrom.className = 'previewDot';
-      dotFrom.style.left = desc.from.x + '%';
-      dotFrom.style.top = desc.from.y + '%';
-      dotFrom.style.background = desc.color;
-      dotFrom.classList.add('previewStart');
-      preview.appendChild(dotFrom);
-
-      const dotTo = document.createElement('div');
-      dotTo.className = 'previewDot';
-      dotTo.style.left = desc.to.x + '%';
-      dotTo.style.top = desc.to.y + '%';
-      dotTo.style.background = desc.color;
-      dotTo.classList.add('previewTarget');
-      preview.appendChild(dotTo);
-    }
-
-    function renderLanePreviewForPlayingLine(line) {
-      const lane = getLaneFromLine(line);
-      const preview = document.getElementById('lanePreview');
-      const info = document.getElementById('laneInfo');
-      if (!preview || !info) return;
-      renderLanePreview(lane);
-      const desc = laneDescriptor(lane);
-      info.textContent = `Playing: ${desc.label}`;
-    }
-
-    function buildLaneButtons() {
-      const container = document.getElementById('laneButtons');
-      if (!container) return;
-      container.innerHTML = '';
-      const defs = [
-        // Row 1: 11, 12, 31, 32
-        { lane: 11, label: '11', cls: 'up' },
-        { lane: 12, label: '12', cls: 'up' },
-        { lane: 31, label: '31', cls: 'right' },
-        { lane: 32, label: '32', cls: 'right' },
-        // Row 2: 21, 22, 41, 42
-        { lane: 21, label: '21', cls: 'left' },
-        { lane: 22, label: '22', cls: 'left' },
-        { lane: 41, label: '41', cls: 'down' },
-        { lane: 42, label: '42', cls: 'down' },
-        // Row 3: 51, 52, 53, 54
-        { lane: 51, label: '51', cls: 'mid' },
-        { lane: 52, label: '52', cls: 'mid' },
-        { lane: 53, label: '53', cls: 'mid' },
-        { lane: 54, label: '54', cls: 'mid' },
-        // Row 4: 00 spans all columns
-        { lane: 0, label: '00 (clear)', cls: 'none wide' },
-      ];
-      for (const d of defs) {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = `laneBtn ${d.cls}`;
-        btn.textContent = d.label;
-        btn.dataset.lane = String(d.lane);
-        btn.addEventListener('click', () => setSelectedRowLane(d.lane));
-        container.appendChild(btn);
+        window.addEventListener('resize', resize);
       }
-    }
 
-    function renderLaneUIForSelectedLine() {
-      const { line } = getSelectedLineContext();
-      const lane = getLaneFromLine(line);
-      renderLanePreview(lane);
-      const container = document.getElementById('laneButtons');
-      if (!container) return;
-      for (const btn of container.querySelectorAll('button[data-lane]')) {
-        const isActive = parseInt(btn.dataset.lane, 10) === lane;
-        btn.classList.toggle('active', isActive);
+      function renderLanePreview(lane) {
+        const preview = document.getElementById('lanePreview');
+        const info = document.getElementById('laneInfo');
+        if (!preview || !info) return;
+        preview.innerHTML = '';
+        const desc = laneDescriptor(lane);
+        info.textContent = desc.label;
+        if (!desc.from || !desc.to) return;
+
+        const dotFrom = document.createElement('div');
+        dotFrom.className = 'previewDot';
+        dotFrom.style.left = desc.from.x + '%';
+        dotFrom.style.top = desc.from.y + '%';
+        dotFrom.style.background = desc.color;
+        dotFrom.classList.add('previewStart');
+        preview.appendChild(dotFrom);
+
+        const dotTo = document.createElement('div');
+        dotTo.className = 'previewDot';
+        dotTo.style.left = desc.to.x + '%';
+        dotTo.style.top = desc.to.y + '%';
+        dotTo.style.background = desc.color;
+        dotTo.classList.add('previewTarget');
+        preview.appendChild(dotTo);
       }
-    }
 
-    function clamp(x, lo, hi) {
-      return Math.max(lo, Math.min(hi, x));
-    }
-
-    function getLineBoundsFromCharIndex(text, charIndex) {
-      const start = text.lastIndexOf('\n', Math.max(0, charIndex - 1)) + 1;
-      let end = text.indexOf('\n', charIndex);
-      if (end === -1) end = text.length;
-      return { start, end };
-    }
-
-    function getLineIndexFromCharIndex(text, charIndex) {
-      if (charIndex <= 0) return 0;
-      return text.slice(0, charIndex).split('\n').length - 1;
-    }
-
-    function scrollTextareaToLine(textarea, lineIdx) {
-      const textareaHeight = textarea.clientHeight;
-      const style = window.getComputedStyle(textarea);
-      const lineHeight = parseFloat(style.lineHeight);
-      let effectiveLineHeight = Number.isFinite(lineHeight) ? lineHeight : NaN;
-      if (!Number.isFinite(effectiveLineHeight)) {
-        const lineCount = Math.max(1, textarea.value.split('\n').length);
-        effectiveLineHeight = textarea.scrollHeight / lineCount;
+      function renderLanePreviewForPlayingLine(line) {
+        const lane = getLaneFromLine(line);
+        const preview = document.getElementById('lanePreview');
+        const info = document.getElementById('laneInfo');
+        if (!preview || !info) return;
+        renderLanePreview(lane);
+        const desc = laneDescriptor(lane);
+        info.textContent = `Playing: ${desc.label}`;
       }
-      // Include padding to avoid drift over time.
-      const padTop = parseFloat(style.paddingTop) || 0;
-      const padBottom = parseFloat(style.paddingBottom) || 0;
-      const innerHeight = Math.max(1, textareaHeight - padTop - padBottom);
-      const target = Math.max(0, padTop + (lineIdx * effectiveLineHeight) - (innerHeight / 2));
-      const maxScroll = Math.max(0, textarea.scrollHeight - textareaHeight);
-      textarea.scrollTop = clamp(target, 0, maxScroll);
-    }
 
-    function findNoteIdxByLineIdx(lineIdx) {
-      if (!noteLineMap.length) return null;
-      const idx = noteLineMap.findIndex(li => li === lineIdx);
-      return idx === -1 ? null : idx;
-    }
-
-    function chordIdxForNoteIdx(noteIdx) {
-      if (!chordStartIndices.length || noteIdx === null) return null;
-      // Find greatest chordStartIndices[i] <= noteIdx
-      let lo = 0, hi = chordStartIndices.length - 1, ans = 0;
-      while (lo <= hi) {
-        const mid = (lo + hi) >> 1;
-        if (chordStartIndices[mid] <= noteIdx) {
-          ans = mid;
-          lo = mid + 1;
-        } else {
-          hi = mid - 1;
+      function buildLaneButtons() {
+        const container = document.getElementById('laneButtons');
+        if (!container) return;
+        container.innerHTML = '';
+        const defs = [
+          // Row 1: 11, 12, 31, 32
+          { lane: 11, label: '11', cls: 'up' },
+          { lane: 12, label: '12', cls: 'up' },
+          { lane: 31, label: '31', cls: 'right' },
+          { lane: 32, label: '32', cls: 'right' },
+          // Row 2: 21, 22, 41, 42
+          { lane: 21, label: '21', cls: 'left' },
+          { lane: 22, label: '22', cls: 'left' },
+          { lane: 41, label: '41', cls: 'down' },
+          { lane: 42, label: '42', cls: 'down' },
+          // Row 3: 51, 52, 53, 54
+          { lane: 51, label: '51', cls: 'mid' },
+          { lane: 52, label: '52', cls: 'mid' },
+          { lane: 53, label: '53', cls: 'mid' },
+          { lane: 54, label: '54', cls: 'mid' },
+          // Row 4: 00 spans all columns
+          { lane: 0, label: '00 (clear)', cls: 'none wide' }
+        ];
+        for (const d of defs) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = `laneBtn ${d.cls}`;
+          btn.textContent = d.label;
+          btn.dataset.lane = String(d.lane);
+          btn.addEventListener('click', () => setSelectedRowLane(d.lane));
+          container.appendChild(btn);
         }
       }
-      return ans;
-    }
 
-    function ensureParsedFromTextarea() {
-      const textarea = document.getElementById('noteInput');
-      const text = textarea.value;
-      const parsed = parseInput(text);
-      playbackNotes = normalizeStartTimes(parsed.notes);
-      rowLineMap = parsed.rowLineMap;
-      noteLineMap = parsed.noteLineMap;
-      computeChordStartIndices();
-      return { textarea, text };
-    }
+      function renderLaneUIForSelectedLine() {
+        const { line } = getSelectedLineContext();
+        const lane = getLaneFromLine(line);
+        renderLanePreview(lane);
+        const container = document.getElementById('laneButtons');
+        if (!container) return;
+        for (const btn of container.querySelectorAll('button[data-lane]')) {
+          const isActive = parseInt(btn.dataset.lane, 10) === lane;
+          btn.classList.toggle('active', isActive);
+        }
+      }
 
-    function syncSelectionToRowAndState(play = false) {
-      if (isSnappingSelection) return;
-      const textarea = document.getElementById('noteInput');
-      const text = textarea.value;
-      if (!text) return;
-      if (!noteLineMap.length) ensureParsedFromTextarea();
-      const shouldAutoSelect = document.getElementById('autoSelect').checked;
-      const shouldAutoScroll = document.getElementById('autoScroll').checked;
-      const selStart = textarea.selectionStart ?? 0;
-      const selEnd = textarea.selectionEnd ?? 0;
+      function clamp(x, lo, hi) {
+        return Math.max(lo, Math.min(hi, x));
+      }
 
-      // Exception: if user selected all text, don't snap.
-      if (selStart === 0 && selEnd === text.length) return;
-      if (selStart === selEnd) {
-        const bounds = getLineBoundsFromCharIndex(text, selStart);
-        const lineIdx = getLineIndexFromCharIndex(text, bounds.start);
+      function getLineBoundsFromCharIndex(text, charIndex) {
+        const start = text.lastIndexOf('\n', Math.max(0, charIndex - 1)) + 1;
+        let end = text.indexOf('\n', charIndex);
+        if (end === -1) end = text.length;
+        return { start, end };
+      }
+
+      function getLineIndexFromCharIndex(text, charIndex) {
+        if (charIndex <= 0) return 0;
+        return text.slice(0, charIndex).split('\n').length - 1;
+      }
+
+      function scrollTextareaToLine(textarea, lineIdx) {
+        const textareaHeight = textarea.clientHeight;
+        const style = window.getComputedStyle(textarea);
+        const lineHeight = parseFloat(style.lineHeight);
+        let effectiveLineHeight = Number.isFinite(lineHeight)
+          ? lineHeight
+          : NaN;
+        if (!Number.isFinite(effectiveLineHeight)) {
+          const lineCount = Math.max(1, textarea.value.split('\n').length);
+          effectiveLineHeight = textarea.scrollHeight / lineCount;
+        }
+        // Include padding to avoid drift over time.
+        const padTop = parseFloat(style.paddingTop) || 0;
+        const padBottom = parseFloat(style.paddingBottom) || 0;
+        const innerHeight = Math.max(1, textareaHeight - padTop - padBottom);
+        const target = Math.max(
+          0,
+          padTop + lineIdx * effectiveLineHeight - innerHeight / 2
+        );
+        const maxScroll = Math.max(0, textarea.scrollHeight - textareaHeight);
+        textarea.scrollTop = clamp(target, 0, maxScroll);
+      }
+
+      function findNoteIdxByLineIdx(lineIdx) {
+        if (!noteLineMap.length) return null;
+        const idx = noteLineMap.findIndex((li) => li === lineIdx);
+        return idx === -1 ? null : idx;
+      }
+
+      function chordIdxForNoteIdx(noteIdx) {
+        if (!chordStartIndices.length || noteIdx === null) return null;
+        // Find greatest chordStartIndices[i] <= noteIdx
+        let lo = 0,
+          hi = chordStartIndices.length - 1,
+          ans = 0;
+        while (lo <= hi) {
+          const mid = (lo + hi) >> 1;
+          if (chordStartIndices[mid] <= noteIdx) {
+            ans = mid;
+            lo = mid + 1;
+          } else {
+            hi = mid - 1;
+          }
+        }
+        return ans;
+      }
+
+      function ensureParsedFromTextarea() {
+        const textarea = document.getElementById('noteInput');
+        const text = textarea.value;
+        const parsed = parseInput(text);
+        playbackNotes = normalizeStartTimes(parsed.notes);
+        rowLineMap = parsed.rowLineMap;
+        noteLineMap = parsed.noteLineMap;
+        computeChordStartIndices();
+        return { textarea, text };
+      }
+
+      function syncSelectionToRowAndState(play = false) {
+        if (isSnappingSelection) return;
+        const textarea = document.getElementById('noteInput');
+        const text = textarea.value;
+        if (!text) return;
+        if (!noteLineMap.length) ensureParsedFromTextarea();
+        const shouldAutoSelect = document.getElementById('autoSelect').checked;
+        const shouldAutoScroll = document.getElementById('autoScroll').checked;
+        const selStart = textarea.selectionStart ?? 0;
+        const selEnd = textarea.selectionEnd ?? 0;
+
+        // Exception: if user selected all text, don't snap.
+        if (selStart === 0 && selEnd === text.length) return;
+        if (selStart === selEnd) {
+          const bounds = getLineBoundsFromCharIndex(text, selStart);
+          const lineIdx = getLineIndexFromCharIndex(text, bounds.start);
+          if (shouldAutoSelect) {
+            // Caret move: snap to whole row selection.
+            isSnappingSelection = true;
+            textarea.setSelectionRange(bounds.start, bounds.end);
+            isSnappingSelection = false;
+          }
+          if (shouldAutoScroll) scrollTextareaToLine(textarea, lineIdx);
+          const noteIdx = findNoteIdxByLineIdx(lineIdx);
+          if (noteIdx !== null) {
+            currentNoteIdx = noteIdx;
+            if (document.getElementById('chordMode').checked) {
+              currentChordIdx = chordIdxForNoteIdx(noteIdx) ?? currentChordIdx;
+            }
+            updateMetadataAndHeader();
+            updateNavButtons();
+            if (play) {
+              if (shouldAutoSelect) {
+                selectNoteAt(
+                  noteIdx,
+                  true,
+                  document.getElementById('chordMode').checked
+                );
+              } else {
+                playSelectionPing(
+                  noteIdx,
+                  document.getElementById('chordMode').checked
+                );
+              }
+            }
+          }
+          renderLaneUIForSelectedLine();
+          return;
+        }
+
+        const { start, end } = getLineBoundsFromCharIndex(text, selStart);
         if (shouldAutoSelect) {
-          // Caret move: snap to whole row selection.
-          isSnappingSelection = true;
-          textarea.setSelectionRange(bounds.start, bounds.end);
-          isSnappingSelection = false;
+          if (start === selStart && end === selEnd) {
+            // Already whole-line selected.
+          } else {
+            isSnappingSelection = true;
+            textarea.setSelectionRange(start, end);
+            isSnappingSelection = false;
+          }
         }
+
+        const lineIdx = getLineIndexFromCharIndex(text, start);
         if (shouldAutoScroll) scrollTextareaToLine(textarea, lineIdx);
+        const noteIdx = findNoteIdxByLineIdx(lineIdx);
+        if (noteIdx === null) {
+          renderLaneUIForSelectedLine();
+          return;
+        }
+
+        currentNoteIdx = noteIdx;
+        if (document.getElementById('chordMode').checked) {
+          currentChordIdx = chordIdxForNoteIdx(noteIdx) ?? currentChordIdx;
+        }
+        updateMetadataAndHeader();
+        updateNavButtons();
+
+        // Keep playback cursor aligned so Play starts from this selection when not paused.
+        if (playState.status !== 'paused') {
+          const mode = getMode();
+          playState.cursor.lastNoteIdx = null;
+          playState.cursor.lastChordIdx = null;
+          playState.cursor.lastLineIdx = lineIdx;
+          playState.cursor.nextStartTime =
+            mode === 'chord'
+              ? getStartTimeForChordIndex(currentChordIdx)
+              : getStartTimeForNoteIndex(currentNoteIdx);
+        } else {
+          // If user changes selection while paused, next Play should start from selection.
+          playState.seekWhilePaused = true;
+        }
+
+        if (play) {
+          if (shouldAutoSelect) {
+            selectNoteAt(
+              noteIdx,
+              true,
+              document.getElementById('chordMode').checked
+            );
+          } else {
+            playSelectionPing(
+              noteIdx,
+              document.getElementById('chordMode').checked
+            );
+          }
+        }
+
+        renderLaneUIForSelectedLine();
+      }
+
+      document.getElementById('sortBtn').addEventListener('click', () => {
+        const textarea = document.getElementById('noteInput');
+        const sorted = sortAndFormatNotesTable(textarea.value);
+        textarea.value = sorted;
+        pausePlayback();
+        playback.clearScheduledTimeouts();
+        playState.status = 'stopped';
+        playState.hasPreloaded = false;
+        playState.cursor = {
+          lastNoteIdx: null,
+          lastChordIdx: null,
+          lastLineIdx: null,
+          nextStartTime: 0
+        };
+
+        ensureParsedFromTextarea();
+
+        // Re-anchor current position to the currently selected line after reorder.
+        const caret = textarea.selectionStart ?? 0;
+        const { start } = getLineBoundsFromCharIndex(textarea.value, caret);
+        const lineIdx = getLineIndexFromCharIndex(textarea.value, start);
         const noteIdx = findNoteIdxByLineIdx(lineIdx);
         if (noteIdx !== null) {
           currentNoteIdx = noteIdx;
           if (document.getElementById('chordMode').checked) {
             currentChordIdx = chordIdxForNoteIdx(noteIdx) ?? currentChordIdx;
           }
-          updateMetadataAndHeader();
-          updateNavButtons();
-          if (play) {
-            if (shouldAutoSelect) {
-              selectNoteAt(noteIdx, true, document.getElementById('chordMode').checked);
-            } else {
-              playSelectionPing(noteIdx, document.getElementById('chordMode').checked);
-            }
-          }
-        }
-        renderLaneUIForSelectedLine();
-        return;
-      }
-
-      const { start, end } = getLineBoundsFromCharIndex(text, selStart);
-      if (shouldAutoSelect) {
-        if (start === selStart && end === selEnd) {
-          // Already whole-line selected.
         } else {
-          isSnappingSelection = true;
-          textarea.setSelectionRange(start, end);
-          isSnappingSelection = false;
+          currentNoteIdx = 0;
+          currentChordIdx = 0;
         }
-      }
 
-      const lineIdx = getLineIndexFromCharIndex(text, start);
-      if (shouldAutoScroll) scrollTextareaToLine(textarea, lineIdx);
-      const noteIdx = findNoteIdxByLineIdx(lineIdx);
-      if (noteIdx === null) {
-        renderLaneUIForSelectedLine();
-        return;
-      }
-
-      currentNoteIdx = noteIdx;
-      if (document.getElementById('chordMode').checked) {
-        currentChordIdx = chordIdxForNoteIdx(noteIdx) ?? currentChordIdx;
-      }
-      updateMetadataAndHeader();
-      updateNavButtons();
-
-      // Keep playback cursor aligned so Play starts from this selection when not paused.
-      if (playState.status !== 'paused') {
-        const mode = getMode();
-        playState.cursor.lastNoteIdx = null;
-        playState.cursor.lastChordIdx = null;
-        playState.cursor.lastLineIdx = lineIdx;
-        playState.cursor.nextStartTime =
-          mode === 'chord'
-            ? getStartTimeForChordIndex(currentChordIdx)
-            : getStartTimeForNoteIndex(currentNoteIdx);
-      } else {
-        // If user changes selection while paused, next Play should start from selection.
-        playState.seekWhilePaused = true;
-      }
-
-      if (play) {
-        if (shouldAutoSelect) {
-          selectNoteAt(noteIdx, true, document.getElementById('chordMode').checked);
-        } else {
-          playSelectionPing(noteIdx, document.getElementById('chordMode').checked);
-        }
-      }
-
-      renderLaneUIForSelectedLine();
-    }
-
-    document.getElementById('sortBtn').addEventListener('click', () => {
-      const textarea = document.getElementById('noteInput');
-      const sorted = sortAndFormatNotesTable(textarea.value);
-      textarea.value = sorted;
-      pausePlayback();
-      playback.clearScheduledTimeouts();
-      playState.status = 'stopped';
-      playState.hasPreloaded = false;
-      playState.cursor = { lastNoteIdx: null, lastChordIdx: null, lastLineIdx: null, nextStartTime: 0 };
-
-      ensureParsedFromTextarea();
-
-      // Re-anchor current position to the currently selected line after reorder.
-      const caret = textarea.selectionStart ?? 0;
-      const { start } = getLineBoundsFromCharIndex(textarea.value, caret);
-      const lineIdx = getLineIndexFromCharIndex(textarea.value, start);
-      const noteIdx = findNoteIdxByLineIdx(lineIdx);
-      if (noteIdx !== null) {
-        currentNoteIdx = noteIdx;
-        if (document.getElementById('chordMode').checked) {
-          currentChordIdx = chordIdxForNoteIdx(noteIdx) ?? currentChordIdx;
-        }
-      } else {
-        currentNoteIdx = 0;
-        currentChordIdx = 0;
-      }
-
-      updateMetadataAndHeader();
-      updateNavButtons();
-      updateOctaveButtons();
-      renderLaneUIForSelectedLine();
-    });
-
-    document.getElementById('insertNotesBtn').addEventListener('click', async () => {
-      const textarea = document.getElementById('noteInput');
-      pausePlayback();
-      playback.clearScheduledTimeouts();
-      const lines = textarea.value.split(/\r?\n/);
-      const assignLanes = [51, 52, 53, 54];
-      let assignIdx = 0;
-      const newLines = lines.map(line => {
-        const cols = line.replace(/^\||\|$/g, '').split('|').map(s => s.trim());
-        if (cols.length < 4) return line;
-        // Only assign if lane is 00
-        if (cols[2] === '00') {
-          cols[2] = String(assignLanes[assignIdx % assignLanes.length]);
-          assignIdx++;
-          return '| ' + cols.join(' | ') + ' |';
-        }
-        return line;
-      });
-      textarea.value = newLines.join('\n');
-      // Recompute playback/navigation state based on updated table.
-      const parsed = parseInput(textarea.value);
-      playbackNotes = normalizeStartTimes(parsed.notes);
-      rowLineMap = parsed.rowLineMap;
-      noteLineMap = parsed.noteLineMap;
-      computeChordStartIndices();
-      playState.status = 'stopped';
-      playState.hasPreloaded = false;
-      playState.cursor = { lastNoteIdx: null, lastChordIdx: null, lastLineIdx: null, nextStartTime: 0 };
-      currentNoteIdx = 0;
-      currentChordIdx = 0;
-      updateNavButtons();
-      updateMetadataAndHeader();
-      updateOctaveButtons();
-      renderLaneUIForSelectedLine();
-    });
-
-    document.getElementById('clearNotesBtn').addEventListener('click', async () => {
-      const textarea = document.getElementById('noteInput');
-      pausePlayback();
-      playback.clearScheduledTimeouts();
-      textarea.value = clearInsertedNotes(textarea.value);
-
-      const parsed = parseInput(textarea.value);
-      playbackNotes = normalizeStartTimes(parsed.notes);
-      rowLineMap = parsed.rowLineMap;
-      noteLineMap = parsed.noteLineMap;
-      computeChordStartIndices();
-      playState.status = 'stopped';
-      playState.hasPreloaded = false;
-      playState.cursor = { lastNoteIdx: null, lastChordIdx: null, lastLineIdx: null, nextStartTime: 0 };
-      currentNoteIdx = 0;
-      currentChordIdx = 0;
-      updateNavButtons();
-      updateMetadataAndHeader();
-      updateOctaveButtons();
-      renderLaneUIForSelectedLine();
-    });
-
-    async function playSelectionPing(idx, chordMode) {
-      if (!playbackNotes.length) return;
-      await playback.waitForSamples();
-      await window.Tone.start();
-      if (chordMode) {
-        const chordTime = playbackNotes[idx].start;
-        const chordNotes = playbackNotes.filter(n => n.start === chordTime);
-        for (const note of chordNotes) {
-          await playNoteCompat(note);
-        }
-      } else {
-        await playNoteCompat(playbackNotes[idx]);
-      }
-    }
-
-    async function goToNextPrev(direction) {
-      if (!noteLineMap.length) return;
-      if (!playbackNotes.length) {
-        ensureParsedFromTextarea();
-      }
-
-      const chordMode = document.getElementById('chordMode').checked;
-      const shouldPlay = document.getElementById('autoPlay').checked;
-      if (chordMode && chordStartIndices.length > 0) {
-        const nextChordIdx = currentChordIdx + direction;
-        if (nextChordIdx < 0 || nextChordIdx >= chordStartIndices.length) return;
-        currentChordIdx = nextChordIdx;
-        const noteIdx = chordStartIndices[currentChordIdx];
-        await selectNoteAt(noteIdx, false, true);
-        if (playState.status === 'paused') playState.seekWhilePaused = true;
-        if (shouldPlay) await playSelectionPing(noteIdx, true);
-      } else {
-        const nextNoteIdx = currentNoteIdx + direction;
-        if (nextNoteIdx < 0 || nextNoteIdx >= noteLineMap.length) return;
-        await selectNoteAt(nextNoteIdx, false, false);
-        if (playState.status === 'paused') playState.seekWhilePaused = true;
-        if (shouldPlay) await playSelectionPing(nextNoteIdx, false);
-      }
-    }
-
-    document.getElementById('nextBtn').addEventListener('click', async () => {
-      await goToNextPrev(1);
-    });
-    document.getElementById('prevBtn').addEventListener('click', async () => {
-      await goToNextPrev(-1);
-    });
-
-    // Update metadata and header on load
-    function computeChordStartIndices() {
-      chordStartIndices = [];
-      chordIndexByStartNoteIdx = new Map();
-      if (!playbackNotes.length) return;
-      let lastStart = null;
-      for (let i = 0; i < playbackNotes.length; ++i) {
-        if (playbackNotes[i].start !== lastStart) {
-          const chordIdx = chordStartIndices.length;
-          chordStartIndices.push(i);
-          chordIndexByStartNoteIdx.set(i, chordIdx);
-          lastStart = playbackNotes[i].start;
-        }
-      }
-    }
-
-
-    function populateInstrumentDropdown() {
-      const INSTRUMENTS = [
-        'bass-electric', 'bassoon', 'cello', 'clarinet', 'contrabass', 'flute', 'french-horn', 'guitar-acoustic', 'guitar-electric', 'guitar-nylon',
-        'harmonium', 'harp', 'organ', 'piano', 'saxophone', 'trombone', 'trumpet', 'tuba', 'violin', 'xylophone'
-      ];
-
-      const sel = document.getElementById('instrumentSelect');
-      sel.innerHTML = '';
-      for (const name of INSTRUMENTS) {
-        const opt = document.createElement('option');
-        opt.value = name;
-        opt.textContent = name;
-        sel.appendChild(opt);
-        sel.value = 'piano';
-      }
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-      updateMetadataAndHeader();
-      buildLaneButtons();
-      renderLaneUIForSelectedLine();
-      startGameRenderLoop();
-      populateInstrumentDropdown();
-
-      const textarea = document.getElementById('noteInput');
-      let lastSelStart = textarea.selectionStart ?? 0;
-      let lastSelEnd = textarea.selectionEnd ?? 0;
-      const runIfSelectionChanged = () => {
-        const s = textarea.selectionStart ?? 0;
-        const e = textarea.selectionEnd ?? 0;
-        if (s === lastSelStart && e === lastSelEnd) return;
-        lastSelStart = s;
-        lastSelEnd = e;
-        const shouldPlay = document.getElementById('autoPlay').checked;
-        syncSelectionToRowAndState(shouldPlay);
-      };
-      textarea.addEventListener('select', () => syncSelectionToRowAndState(false));
-      textarea.addEventListener('mouseup', () => setTimeout(runIfSelectionChanged, 0));
-      textarea.addEventListener('keyup', () => setTimeout(runIfSelectionChanged, 0));
-      document.getElementById('applyInstrumentBtn').addEventListener('click', applyInstrumentToTrack);
-
-      // Parse notes and set up navigation state
-      const text = document.getElementById('noteInput').value;
-      const parsed = parseInput(text);
-      playbackNotes = normalizeStartTimes(parsed.notes);
-      rowLineMap = parsed.rowLineMap;
-      noteLineMap = parsed.noteLineMap;
-      computeChordStartIndices();
-      if (playbackNotes.length > 0) {
-        currentNoteIdx = -1;
-        currentChordIdx = -1;
-        updateNavButtons();
-      }
-    });
-
-    // Playback logic
-    function getMode() {
-      return document.getElementById('chordMode').checked ? 'chord' : 'note';
-    }
-
-    function getStartTimeForChordIndex(chordIdx) {
-      if (!chordStartIndices.length) return 0;
-      chordIdx = Math.max(0, Math.min(chordStartIndices.length - 1, chordIdx));
-      const noteIdx = chordStartIndices[chordIdx];
-      return playbackNotes[noteIdx]?.start ?? 0;
-    }
-
-    function getStartTimeForNoteIndex(noteIdx) {
-      if (!playbackNotes.length) return 0;
-      noteIdx = Math.max(0, Math.min(playbackNotes.length - 1, noteIdx));
-      return playbackNotes[noteIdx]?.start ?? 0;
-    }
-
-    function computeNextStartTimeAfter(lastNoteIdx, mode) {
-      if (!playbackNotes.length) return 0;
-      if (lastNoteIdx === null || lastNoteIdx === undefined) return 0;
-
-      if (mode === 'chord') {
-        const lastChordIdx = chordIndexByStartNoteIdx.get(lastNoteIdx);
-        if (lastChordIdx === undefined) return getStartTimeForNoteIndex(lastNoteIdx);
-        if (lastChordIdx >= chordStartIndices.length - 1) return Infinity;
-        return getStartTimeForChordIndex(lastChordIdx + 1);
-      }
-
-      if (lastNoteIdx >= playbackNotes.length - 1) return Infinity;
-      return getStartTimeForNoteIndex(lastNoteIdx + 1);
-    }
-
-    function startPlayback(startTime) {
-      const mode = getMode();
-      const statusMode = mode === 'note' ? 'note' : 'chord';
-
-      // Sync UI immediately to the start position (before first status callback fires).
-      if (mode === 'chord' && chordStartIndices.length > 0) {
-        const chordIdx = chordStartIndices.findIndex(i => playbackNotes[i]?.start === startTime);
-        if (chordIdx !== -1) {
-          currentChordIdx = chordIdx;
-          currentNoteIdx = chordStartIndices[chordIdx];
-        }
-      } else if (mode === 'note' && playbackNotes.length > 0) {
-        const noteIdx = playbackNotes.findIndex(n => n.start === startTime);
-        if (noteIdx !== -1) currentNoteIdx = noteIdx;
-      }
-      updateMetadataAndHeader();
-      updateNavButtons();
-      // Also select/scroll the corresponding row in the textarea when playback starts/resumes.
-      const shouldAutoSelect = document.getElementById('autoSelect').checked;
-      const shouldAutoScroll = document.getElementById('autoScroll').checked;
-      if (noteLineMap.length && currentNoteIdx >= 0) {
-        if (shouldAutoSelect) {
-          selectNoteAt(currentNoteIdx, false, mode === 'chord');
-        } else if (shouldAutoScroll) {
-          const textarea = document.getElementById('noteInput');
-          const lineIdx = noteLineMap[currentNoteIdx];
-          scrollTextareaToLine(textarea, lineIdx);
-        }
-      }
-
-      playback.playNotesFrom(startTime, playbackNotes, (note) => {
-        // Highlight current row
-        const textarea = document.getElementById('noteInput');
-        const currentRowDiv = document.getElementById('currentRowStatus');
-        currentRowDiv.innerHTML = '';
-        const div = document.createElement('div');
-        div.textContent = `Playing: Row ${note.lineIdx + 1}: ${note.raw}`;
-        div.style.cursor = 'pointer';
-        div.onclick = () => {
-          // Select row in textarea
-          const lines = textarea.value.split(/\r?\n/);
-          let startIdx = 0;
-          for (let i = 0; i < note.lineIdx; ++i) startIdx += lines[i].length + 1;
-          textarea.focus();
-          textarea.setSelectionRange(startIdx, startIdx + lines[note.lineIdx].length);
-        };
-        currentRowDiv.appendChild(div);
-
-        // Update navigation index and title as song plays.
-        currentNoteIdx = note.idx;
-        const chordIdx = chordIndexByStartNoteIdx.get(note.idx);
-        if (mode === 'chord' && chordIdx !== undefined) currentChordIdx = chordIdx;
-
-        playState.cursor.lastNoteIdx = note.idx;
-        playState.cursor.lastChordIdx = chordIdx ?? null;
-        playState.cursor.lastLineIdx = note.lineIdx ?? null;
-        playState.cursor.nextStartTime = computeNextStartTimeAfter(note.idx, mode);
         updateMetadataAndHeader();
         updateNavButtons();
-        renderLanePreviewForPlayingLine(note.raw);
-        const ap = document.getElementById('autoPlay').checked;
-        const as = document.getElementById('autoSelect').checked;
-        const ascroll = document.getElementById('autoScroll').checked;
-        if (ap) {
-          if (as) {
-            // Keep the currently playing chord/note row selected and in view.
-            selectNoteAt(note.idx, false, mode === 'chord');
-          } else if (ascroll) {
-            const textarea = document.getElementById('noteInput');
-            scrollTextareaToLine(textarea, note.lineIdx);
-          }
-        }
-      }, { statusMode });
+        updateOctaveButtons();
+        renderLaneUIForSelectedLine();
+      });
 
-      playState.status = 'playing';
-      document.getElementById('playBtn').textContent = '⏸';
-      // Auto-pause when done
-      if (playbackNotes.length > 0) {
-        const lastEnd = Math.max(...playbackNotes.map(n => n.start + n.duration));
-        setTimeout(() => {
-          if (playState.status === 'playing' && playback.getCurrentPlaybackTime() >= lastEnd - 0.01) {
-            pausePlayback();
-            playState.cursor.nextStartTime = 0;
-          }
-        }, (lastEnd - startTime) * 1000 + 100);
-      }
-    }
-
-    function pausePlayback() {
-      if (playState.status !== 'playing') return;
-      playback.pausePlayback();
-      playState.status = 'paused';
-      playState.seekWhilePaused = false;
-      // Resume should start at the next chord/note boundary (computed during playback).
-      if (!Number.isFinite(playState.cursor.nextStartTime)) playState.cursor.nextStartTime = 0;
-      document.getElementById('playBtn').textContent = '⏵';
-      // Leave the last played chord/note selected when pausing.
-      if (document.getElementById('autoSelect').checked && playState.cursor.lastNoteIdx !== null && playState.cursor.lastNoteIdx !== undefined) {
-        selectNoteAt(playState.cursor.lastNoteIdx, false, document.getElementById('chordMode').checked);
-      }
-      renderLaneUIForSelectedLine();
-    }
-
-    document.getElementById('playBtn').addEventListener('click', async () => {
-      if (playState.status !== 'playing') {
-        // Start or resume
-        if (!playbackNotes.length) {
-          const text = document.getElementById('noteInput').value;
-          const parsed = parseInput(text);
+      document
+        .getElementById('insertNotesBtn')
+        .addEventListener('click', async () => {
+          const textarea = document.getElementById('noteInput');
+          pausePlayback();
+          playback.clearScheduledTimeouts();
+          const lines = textarea.value.split(/\r?\n/);
+          const assignLanes = [51, 52, 53, 54];
+          let assignIdx = 0;
+          const newLines = lines.map((line) => {
+            const cols = line
+              .replace(/^\||\|$/g, '')
+              .split('|')
+              .map((s) => s.trim());
+            if (cols.length < 4) return line;
+            // Only assign if lane is 00
+            if (cols[2] === '00') {
+              cols[2] = String(assignLanes[assignIdx % assignLanes.length]);
+              assignIdx++;
+              return '| ' + cols.join(' | ') + ' |';
+            }
+            return line;
+          });
+          textarea.value = newLines.join('\n');
+          // Recompute playback/navigation state based on updated table.
+          const parsed = parseInput(textarea.value);
           playbackNotes = normalizeStartTimes(parsed.notes);
           rowLineMap = parsed.rowLineMap;
           noteLineMap = parsed.noteLineMap;
           computeChordStartIndices();
-          if (playbackNotes.length === 0) {
-            alert('No valid notes found.');
-            return;
-          }
           playState.status = 'stopped';
           playState.hasPreloaded = false;
-          playState.cursor = { lastNoteIdx: null, lastChordIdx: null, lastLineIdx: null, nextStartTime: 0 };
+          playState.cursor = {
+            lastNoteIdx: null,
+            lastChordIdx: null,
+            lastLineIdx: null,
+            nextStartTime: 0
+          };
           currentNoteIdx = 0;
           currentChordIdx = 0;
+          updateNavButtons();
           updateMetadataAndHeader();
+          updateOctaveButtons();
+          renderLaneUIForSelectedLine();
+        });
+
+      document
+        .getElementById('clearNotesBtn')
+        .addEventListener('click', async () => {
+          const textarea = document.getElementById('noteInput');
+          pausePlayback();
+          playback.clearScheduledTimeouts();
+          textarea.value = clearInsertedNotes(textarea.value);
+
+          const parsed = parseInput(textarea.value);
+          playbackNotes = normalizeStartTimes(parsed.notes);
+          rowLineMap = parsed.rowLineMap;
+          noteLineMap = parsed.noteLineMap;
+          computeChordStartIndices();
+          playState.status = 'stopped';
+          playState.hasPreloaded = false;
+          playState.cursor = {
+            lastNoteIdx: null,
+            lastChordIdx: null,
+            lastLineIdx: null,
+            nextStartTime: 0
+          };
+          currentNoteIdx = 0;
+          currentChordIdx = 0;
+          updateNavButtons();
+          updateMetadataAndHeader();
+          updateOctaveButtons();
+          renderLaneUIForSelectedLine();
+        });
+
+      async function playSelectionPing(idx, chordMode) {
+        if (!playbackNotes.length) return;
+        await playback.waitForSamples();
+        await window.Tone.start();
+        if (chordMode) {
+          const chordTime = playbackNotes[idx].start;
+          const chordNotes = playbackNotes.filter((n) => n.start === chordTime);
+          for (const note of chordNotes) {
+            await playNoteCompat(note);
+          }
+        } else {
+          await playNoteCompat(playbackNotes[idx]);
+        }
+      }
+
+      async function goToNextPrev(direction) {
+        if (!noteLineMap.length) return;
+        if (!playbackNotes.length) {
+          ensureParsedFromTextarea();
+        }
+
+        const chordMode = document.getElementById('chordMode').checked;
+        const shouldPlay = document.getElementById('autoPlay').checked;
+        if (chordMode && chordStartIndices.length > 0) {
+          const nextChordIdx = currentChordIdx + direction;
+          if (nextChordIdx < 0 || nextChordIdx >= chordStartIndices.length)
+            return;
+          currentChordIdx = nextChordIdx;
+          const noteIdx = chordStartIndices[currentChordIdx];
+          await selectNoteAt(noteIdx, false, true);
+          if (playState.status === 'paused') playState.seekWhilePaused = true;
+          if (shouldPlay) await playSelectionPing(noteIdx, true);
+        } else {
+          const nextNoteIdx = currentNoteIdx + direction;
+          if (nextNoteIdx < 0 || nextNoteIdx >= noteLineMap.length) return;
+          await selectNoteAt(nextNoteIdx, false, false);
+          if (playState.status === 'paused') playState.seekWhilePaused = true;
+          if (shouldPlay) await playSelectionPing(nextNoteIdx, false);
+        }
+      }
+
+      document.getElementById('nextBtn').addEventListener('click', async () => {
+        await goToNextPrev(1);
+      });
+      document.getElementById('prevBtn').addEventListener('click', async () => {
+        await goToNextPrev(-1);
+      });
+
+      // Update metadata and header on load
+      function computeChordStartIndices() {
+        chordStartIndices = [];
+        chordIndexByStartNoteIdx = new Map();
+        if (!playbackNotes.length) return;
+        let lastStart = null;
+        for (let i = 0; i < playbackNotes.length; ++i) {
+          if (playbackNotes[i].start !== lastStart) {
+            const chordIdx = chordStartIndices.length;
+            chordStartIndices.push(i);
+            chordIndexByStartNoteIdx.set(i, chordIdx);
+            lastStart = playbackNotes[i].start;
+          }
+        }
+      }
+
+      function populateInstrumentDropdown() {
+        const INSTRUMENTS = [
+          'bass-electric',
+          'bassoon',
+          'cello',
+          'clarinet',
+          'contrabass',
+          'flute',
+          'french-horn',
+          'guitar-acoustic',
+          'guitar-electric',
+          'guitar-nylon',
+          'harmonium',
+          'harp',
+          'organ',
+          'piano',
+          'saxophone',
+          'trombone',
+          'trumpet',
+          'tuba',
+          'violin',
+          'xylophone'
+        ];
+
+        const sel = document.getElementById('instrumentSelect');
+        sel.innerHTML = '';
+        for (const name of INSTRUMENTS) {
+          const opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = name;
+          sel.appendChild(opt);
+          sel.value = 'piano';
+        }
+      }
+
+      window.addEventListener('DOMContentLoaded', () => {
+        updateMetadataAndHeader();
+        buildLaneButtons();
+        renderLaneUIForSelectedLine();
+        startGameRenderLoop();
+        populateInstrumentDropdown();
+
+        const textarea = document.getElementById('noteInput');
+        let lastSelStart = textarea.selectionStart ?? 0;
+        let lastSelEnd = textarea.selectionEnd ?? 0;
+        const runIfSelectionChanged = () => {
+          const s = textarea.selectionStart ?? 0;
+          const e = textarea.selectionEnd ?? 0;
+          if (s === lastSelStart && e === lastSelEnd) return;
+          lastSelStart = s;
+          lastSelEnd = e;
+          const shouldPlay = document.getElementById('autoPlay').checked;
+          syncSelectionToRowAndState(shouldPlay);
+        };
+        textarea.addEventListener('select', () =>
+          syncSelectionToRowAndState(false)
+        );
+        textarea.addEventListener('mouseup', () =>
+          setTimeout(runIfSelectionChanged, 0)
+        );
+        textarea.addEventListener('keyup', () =>
+          setTimeout(runIfSelectionChanged, 0)
+        );
+        document
+          .getElementById('applyInstrumentBtn')
+          .addEventListener('click', applyInstrumentToTrack);
+
+        // Parse notes and set up navigation state
+        const text = document.getElementById('noteInput').value;
+        const parsed = parseInput(text);
+        playbackNotes = normalizeStartTimes(parsed.notes);
+        rowLineMap = parsed.rowLineMap;
+        noteLineMap = parsed.noteLineMap;
+        computeChordStartIndices();
+        if (playbackNotes.length > 0) {
+          currentNoteIdx = -1;
+          currentChordIdx = -1;
           updateNavButtons();
         }
-        // Preload samples once per parsed song to avoid audible artifacts on resume.
-        if (!playState.hasPreloaded) {
-          document.getElementById('playBtn').textContent = '⏳';
-          await playback.preloadNotes(playbackNotes);
-          // Add a short delay to ensure all buffers are ready
-          await new Promise(res => setTimeout(res, 300));
-          playState.hasPreloaded = true;
+      });
+
+      // Playback logic
+      function getMode() {
+        return document.getElementById('chordMode').checked ? 'chord' : 'note';
+      }
+
+      function getStartTimeForChordIndex(chordIdx) {
+        if (!chordStartIndices.length) return 0;
+        chordIdx = Math.max(
+          0,
+          Math.min(chordStartIndices.length - 1, chordIdx)
+        );
+        const noteIdx = chordStartIndices[chordIdx];
+        return playbackNotes[noteIdx]?.start ?? 0;
+      }
+
+      function getStartTimeForNoteIndex(noteIdx) {
+        if (!playbackNotes.length) return 0;
+        noteIdx = Math.max(0, Math.min(playbackNotes.length - 1, noteIdx));
+        return playbackNotes[noteIdx]?.start ?? 0;
+      }
+
+      function computeNextStartTimeAfter(lastNoteIdx, mode) {
+        if (!playbackNotes.length) return 0;
+        if (lastNoteIdx === null || lastNoteIdx === undefined) return 0;
+
+        if (mode === 'chord') {
+          const lastChordIdx = chordIndexByStartNoteIdx.get(lastNoteIdx);
+          if (lastChordIdx === undefined)
+            return getStartTimeForNoteIndex(lastNoteIdx);
+          if (lastChordIdx >= chordStartIndices.length - 1) return Infinity;
+          return getStartTimeForChordIndex(lastChordIdx + 1);
         }
+
+        if (lastNoteIdx >= playbackNotes.length - 1) return Infinity;
+        return getStartTimeForNoteIndex(lastNoteIdx + 1);
+      }
+
+      function startPlayback(startTime) {
         const mode = getMode();
-        let startTime = 0;
-        if (playState.status === 'paused' && !playState.seekWhilePaused) {
-          const next = playState.cursor.nextStartTime;
-          if (next === Infinity) {
-            playState.status = 'stopped';
-            playState.cursor.nextStartTime = 0;
-            startTime = 0;
-          } else {
-            startTime = next ?? 0;
+        const statusMode = mode === 'note' ? 'note' : 'chord';
+
+        // Sync UI immediately to the start position (before first status callback fires).
+        if (mode === 'chord' && chordStartIndices.length > 0) {
+          const chordIdx = chordStartIndices.findIndex(
+            (i) => playbackNotes[i]?.start === startTime
+          );
+          if (chordIdx !== -1) {
+            currentChordIdx = chordIdx;
+            currentNoteIdx = chordStartIndices[chordIdx];
           }
-        } else if (mode === 'chord' && chordStartIndices.length > 0) {
-          const startChordIdx = Math.max(0, currentChordIdx);
-          startTime = getStartTimeForChordIndex(startChordIdx);
-        } else {
-          startTime = getStartTimeForNoteIndex(Math.max(0, currentNoteIdx));
-        }
-        playState.seekWhilePaused = false;
-        startPlayback(startTime);
-      } else {
-        // Pause
-        pausePlayback();
-      }
-    });
-
-    document.getElementById('beginBtn').addEventListener('click', async () => {
-      ensureParsedFromTextarea();
-      if (!noteLineMap.length) return;
-      const chordMode = document.getElementById('chordMode').checked;
-      pausePlayback();
-      if (chordMode && chordStartIndices.length > 0) {
-        currentChordIdx = 0;
-        await selectNoteAt(chordStartIndices[0], false, true);
-        if (playState.status === 'paused') playState.seekWhilePaused = true;
-        if (document.getElementById('autoPlay').checked) await playSelectionPing(chordStartIndices[0], true);
-      } else {
-        currentNoteIdx = 0;
-        await selectNoteAt(0, false, false);
-        if (playState.status === 'paused') playState.seekWhilePaused = true;
-        if (document.getElementById('autoPlay').checked) await playSelectionPing(0, false);
-      }
-    });
-
-    document.getElementById('endBtn').addEventListener('click', async () => {
-      ensureParsedFromTextarea();
-      if (!noteLineMap.length) return;
-      const chordMode = document.getElementById('chordMode').checked;
-      pausePlayback();
-      if (chordMode && chordStartIndices.length > 0) {
-        currentChordIdx = chordStartIndices.length - 1;
-        const idx = chordStartIndices[currentChordIdx];
-        await selectNoteAt(idx, false, true);
-        if (playState.status === 'paused') playState.seekWhilePaused = true;
-        if (document.getElementById('autoPlay').checked) await playSelectionPing(idx, true);
-      } else {
-        currentNoteIdx = noteLineMap.length - 1;
-        await selectNoteAt(currentNoteIdx, false, false);
-        if (playState.status === 'paused') playState.seekWhilePaused = true;
-        if (document.getElementById('autoPlay').checked) await playSelectionPing(currentNoteIdx, false);
-      }
-    });
-
-    document.getElementById('noteInput').addEventListener('input', async (e) => {
-      pausePlayback();
-      playState.status = 'stopped';
-      playState.hasPreloaded = false;
-      playState.cursor = { lastNoteIdx: null, lastChordIdx: null, lastLineIdx: null, nextStartTime: 0 };
-      playback.clearScheduledTimeouts();
-      document.getElementById('currentRowStatus').innerHTML = '';
-
-      if (parseDebounceTimer) clearTimeout(parseDebounceTimer);
-      parseDebounceTimer = setTimeout(() => {
-        ensureParsedFromTextarea();
-        // If current indices are invalid, reset to start.
-        if (noteLineMap.length === 0) {
-          currentNoteIdx = 0;
-          currentChordIdx = 0;
-        } else {
-          currentNoteIdx = clamp(currentNoteIdx, 0, noteLineMap.length - 1);
-          currentChordIdx = clamp(currentChordIdx, 0, Math.max(0, chordStartIndices.length - 1));
+        } else if (mode === 'note' && playbackNotes.length > 0) {
+          const noteIdx = playbackNotes.findIndex((n) => n.start === startTime);
+          if (noteIdx !== -1) currentNoteIdx = noteIdx;
         }
         updateMetadataAndHeader();
         updateNavButtons();
-        renderLaneUIForSelectedLine();
-      }, 50);
-    });
-    // Recompute chord indices and update nav buttons when Chord Mode toggled
-    document.getElementById('chordMode').addEventListener('change', () => {
-      computeChordStartIndices();
-      if (document.getElementById('chordMode').checked) {
-        // Snap to nearest chord index
-        let idx = chordStartIndices.find(i => i >= currentNoteIdx) ?? chordStartIndices[chordStartIndices.length - 1];
-        currentChordIdx = chordStartIndices.indexOf(idx);
-        selectNoteAt(idx, false, true);
-      } else {
-        selectNoteAt(currentNoteIdx, false, false);
-      }
-      updateNavButtons();
-    });
-    // On first Next click after load, highlight and play the first chord
-    document.getElementById('nextBtn').addEventListener('click', async function firstNextHandler(e) {
-      if (currentNoteIdx === -1 && noteLineMap.length > 0) {
-        await selectNoteAt(0, true);
-        e.stopImmediatePropagation();
-      }
-    }, true);
-  </script>
-</body>
+        // Also select/scroll the corresponding row in the textarea when playback starts/resumes.
+        const shouldAutoSelect = document.getElementById('autoSelect').checked;
+        const shouldAutoScroll = document.getElementById('autoScroll').checked;
+        if (noteLineMap.length && currentNoteIdx >= 0) {
+          if (shouldAutoSelect) {
+            selectNoteAt(currentNoteIdx, false, mode === 'chord');
+          } else if (shouldAutoScroll) {
+            const textarea = document.getElementById('noteInput');
+            const lineIdx = noteLineMap[currentNoteIdx];
+            scrollTextareaToLine(textarea, lineIdx);
+          }
+        }
 
+        playback.playNotesFrom(
+          startTime,
+          playbackNotes,
+          (note) => {
+            // Highlight current row
+            const textarea = document.getElementById('noteInput');
+            const currentRowDiv = document.getElementById('currentRowStatus');
+            currentRowDiv.innerHTML = '';
+            const div = document.createElement('div');
+            div.textContent = `Playing: Row ${note.lineIdx + 1}: ${note.raw}`;
+            div.style.cursor = 'pointer';
+            div.onclick = () => {
+              // Select row in textarea
+              const lines = textarea.value.split(/\r?\n/);
+              let startIdx = 0;
+              for (let i = 0; i < note.lineIdx; ++i)
+                startIdx += lines[i].length + 1;
+              textarea.focus();
+              textarea.setSelectionRange(
+                startIdx,
+                startIdx + lines[note.lineIdx].length
+              );
+            };
+            currentRowDiv.appendChild(div);
+
+            // Update navigation index and title as song plays.
+            currentNoteIdx = note.idx;
+            const chordIdx = chordIndexByStartNoteIdx.get(note.idx);
+            if (mode === 'chord' && chordIdx !== undefined)
+              currentChordIdx = chordIdx;
+
+            playState.cursor.lastNoteIdx = note.idx;
+            playState.cursor.lastChordIdx = chordIdx ?? null;
+            playState.cursor.lastLineIdx = note.lineIdx ?? null;
+            playState.cursor.nextStartTime = computeNextStartTimeAfter(
+              note.idx,
+              mode
+            );
+            updateMetadataAndHeader();
+            updateNavButtons();
+            renderLanePreviewForPlayingLine(note.raw);
+            const ap = document.getElementById('autoPlay').checked;
+            const as = document.getElementById('autoSelect').checked;
+            const ascroll = document.getElementById('autoScroll').checked;
+            if (ap) {
+              if (as) {
+                // Keep the currently playing chord/note row selected and in view.
+                selectNoteAt(note.idx, false, mode === 'chord');
+              } else if (ascroll) {
+                const textarea = document.getElementById('noteInput');
+                scrollTextareaToLine(textarea, note.lineIdx);
+              }
+            }
+          },
+          { statusMode }
+        );
+
+        playState.status = 'playing';
+        document.getElementById('playBtn').textContent = '⏸';
+        // Auto-pause when done
+        if (playbackNotes.length > 0) {
+          const lastEnd = Math.max(
+            ...playbackNotes.map((n) => n.start + n.duration)
+          );
+          setTimeout(
+            () => {
+              if (
+                playState.status === 'playing' &&
+                playback.getCurrentPlaybackTime() >= lastEnd - 0.01
+              ) {
+                pausePlayback();
+                playState.cursor.nextStartTime = 0;
+              }
+            },
+            (lastEnd - startTime) * 1000 + 100
+          );
+        }
+      }
+
+      function pausePlayback() {
+        if (playState.status !== 'playing') return;
+        playback.pausePlayback();
+        playState.status = 'paused';
+        playState.seekWhilePaused = false;
+        // Resume should start at the next chord/note boundary (computed during playback).
+        if (!Number.isFinite(playState.cursor.nextStartTime))
+          playState.cursor.nextStartTime = 0;
+        document.getElementById('playBtn').textContent = '⏵';
+        // Leave the last played chord/note selected when pausing.
+        if (
+          document.getElementById('autoSelect').checked &&
+          playState.cursor.lastNoteIdx !== null &&
+          playState.cursor.lastNoteIdx !== undefined
+        ) {
+          selectNoteAt(
+            playState.cursor.lastNoteIdx,
+            false,
+            document.getElementById('chordMode').checked
+          );
+        }
+        renderLaneUIForSelectedLine();
+      }
+
+      document.getElementById('playBtn').addEventListener('click', async () => {
+        if (playState.status !== 'playing') {
+          // Start or resume
+          if (!playbackNotes.length) {
+            const text = document.getElementById('noteInput').value;
+            const parsed = parseInput(text);
+            playbackNotes = normalizeStartTimes(parsed.notes);
+            rowLineMap = parsed.rowLineMap;
+            noteLineMap = parsed.noteLineMap;
+            computeChordStartIndices();
+            if (playbackNotes.length === 0) {
+              alert('No valid notes found.');
+              return;
+            }
+            playState.status = 'stopped';
+            playState.hasPreloaded = false;
+            playState.cursor = {
+              lastNoteIdx: null,
+              lastChordIdx: null,
+              lastLineIdx: null,
+              nextStartTime: 0
+            };
+            currentNoteIdx = 0;
+            currentChordIdx = 0;
+            updateMetadataAndHeader();
+            updateNavButtons();
+          }
+          // Preload samples once per parsed song to avoid audible artifacts on resume.
+          if (!playState.hasPreloaded) {
+            document.getElementById('playBtn').textContent = '⏳';
+            await playback.preloadNotes(playbackNotes);
+            // Add a short delay to ensure all buffers are ready
+            await new Promise((res) => setTimeout(res, 300));
+            playState.hasPreloaded = true;
+          }
+          const mode = getMode();
+          let startTime = 0;
+          if (playState.status === 'paused' && !playState.seekWhilePaused) {
+            const next = playState.cursor.nextStartTime;
+            if (next === Infinity) {
+              playState.status = 'stopped';
+              playState.cursor.nextStartTime = 0;
+              startTime = 0;
+            } else {
+              startTime = next ?? 0;
+            }
+          } else if (mode === 'chord' && chordStartIndices.length > 0) {
+            const startChordIdx = Math.max(0, currentChordIdx);
+            startTime = getStartTimeForChordIndex(startChordIdx);
+          } else {
+            startTime = getStartTimeForNoteIndex(Math.max(0, currentNoteIdx));
+          }
+          playState.seekWhilePaused = false;
+          startPlayback(startTime);
+        } else {
+          // Pause
+          pausePlayback();
+        }
+      });
+
+      document
+        .getElementById('beginBtn')
+        .addEventListener('click', async () => {
+          ensureParsedFromTextarea();
+          if (!noteLineMap.length) return;
+          const chordMode = document.getElementById('chordMode').checked;
+          pausePlayback();
+          if (chordMode && chordStartIndices.length > 0) {
+            currentChordIdx = 0;
+            await selectNoteAt(chordStartIndices[0], false, true);
+            if (playState.status === 'paused') playState.seekWhilePaused = true;
+            if (document.getElementById('autoPlay').checked)
+              await playSelectionPing(chordStartIndices[0], true);
+          } else {
+            currentNoteIdx = 0;
+            await selectNoteAt(0, false, false);
+            if (playState.status === 'paused') playState.seekWhilePaused = true;
+            if (document.getElementById('autoPlay').checked)
+              await playSelectionPing(0, false);
+          }
+        });
+
+      document.getElementById('endBtn').addEventListener('click', async () => {
+        ensureParsedFromTextarea();
+        if (!noteLineMap.length) return;
+        const chordMode = document.getElementById('chordMode').checked;
+        pausePlayback();
+        if (chordMode && chordStartIndices.length > 0) {
+          currentChordIdx = chordStartIndices.length - 1;
+          const idx = chordStartIndices[currentChordIdx];
+          await selectNoteAt(idx, false, true);
+          if (playState.status === 'paused') playState.seekWhilePaused = true;
+          if (document.getElementById('autoPlay').checked)
+            await playSelectionPing(idx, true);
+        } else {
+          currentNoteIdx = noteLineMap.length - 1;
+          await selectNoteAt(currentNoteIdx, false, false);
+          if (playState.status === 'paused') playState.seekWhilePaused = true;
+          if (document.getElementById('autoPlay').checked)
+            await playSelectionPing(currentNoteIdx, false);
+        }
+      });
+
+      document
+        .getElementById('noteInput')
+        .addEventListener('input', async (e) => {
+          pausePlayback();
+          playState.status = 'stopped';
+          playState.hasPreloaded = false;
+          playState.cursor = {
+            lastNoteIdx: null,
+            lastChordIdx: null,
+            lastLineIdx: null,
+            nextStartTime: 0
+          };
+          playback.clearScheduledTimeouts();
+          document.getElementById('currentRowStatus').innerHTML = '';
+
+          if (parseDebounceTimer) clearTimeout(parseDebounceTimer);
+          parseDebounceTimer = setTimeout(() => {
+            ensureParsedFromTextarea();
+            // If current indices are invalid, reset to start.
+            if (noteLineMap.length === 0) {
+              currentNoteIdx = 0;
+              currentChordIdx = 0;
+            } else {
+              currentNoteIdx = clamp(currentNoteIdx, 0, noteLineMap.length - 1);
+              currentChordIdx = clamp(
+                currentChordIdx,
+                0,
+                Math.max(0, chordStartIndices.length - 1)
+              );
+            }
+            updateMetadataAndHeader();
+            updateNavButtons();
+            renderLaneUIForSelectedLine();
+          }, 50);
+        });
+      // Recompute chord indices and update nav buttons when Chord Mode toggled
+      document.getElementById('chordMode').addEventListener('change', () => {
+        computeChordStartIndices();
+        if (document.getElementById('chordMode').checked) {
+          // Snap to nearest chord index
+          let idx =
+            chordStartIndices.find((i) => i >= currentNoteIdx) ??
+            chordStartIndices[chordStartIndices.length - 1];
+          currentChordIdx = chordStartIndices.indexOf(idx);
+          selectNoteAt(idx, false, true);
+        } else {
+          selectNoteAt(currentNoteIdx, false, false);
+        }
+        updateNavButtons();
+      });
+      // On first Next click after load, highlight and play the first chord
+      document.getElementById('nextBtn').addEventListener(
+        'click',
+        async function firstNextHandler(e) {
+          if (currentNoteIdx === -1 && noteLineMap.length > 0) {
+            await selectNoteAt(0, true);
+            e.stopImmediatePropagation();
+          }
+        },
+        true
+      );
+    </script>
+  </body>
 </html>
