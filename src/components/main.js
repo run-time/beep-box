@@ -154,7 +154,7 @@ export class HanSoloistGame extends HTMLElement {
 
     // Levels + scoring
     this.currentLevel = 1;
-    this.maxLevel = 1;
+    this.maxLevel = 20;
     this.maxLevelPromise = null;
     this.runEndLevel = null;
     this.isSingleLevelMode = false;
