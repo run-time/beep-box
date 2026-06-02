@@ -1,5 +1,3 @@
-// createSimpleReverbBuffer.js
-// Utility to create a simple impulse response buffer for reverb
 export function createSimpleReverbBuffer(
   audioCtx,
   duration = 2.0,

@@ -32,6 +32,32 @@ function computeMaxLevelFromSongsDir(songsDir) {
   return expected - 1;
 }
 
+function buildLevelIndexFromSongsDir(songsDir) {
+  let entries = [];
+  try {
+    entries = fs.readdirSync(songsDir, { withFileTypes: true });
+  } catch {
+    return {};
+  }
+
+  const byLevel = new Map();
+  for (const e of entries) {
+    if (!e.isFile()) continue;
+    const m = /^0*(\d+)\.md$/i.exec(e.name);
+    if (!m) continue;
+    const level = Number(m[1]);
+    if (!Number.isFinite(level) || level < 1) continue;
+    const existing = byLevel.get(level);
+    if (!existing || e.name.length > existing.length) {
+      byLevel.set(level, e.name);
+    }
+  }
+
+  return Object.fromEntries(
+    Array.from(byLevel.entries()).sort((a, b) => a[0] - b[0])
+  );
+}
+
 const server = http.createServer((req, res) => {
   if (req.url === "/level-maker" || req.url === "/level-maker/") {
     res.writeHead(302, { Location: "/src/level-maker/" });
@@ -56,27 +82,22 @@ const server = http.createServer((req, res) => {
     res.end(JSON.stringify({ maxLevel }));
     return;
   }
-
-  // Special case: serve favicon.svg as /favicon.ico
-  if (req.url === "/favicon.ico") {
-    const svgPath = path.join(__dirname, "favicon.svg");
-    try {
-      const svgContent = fs.readFileSync(svgPath);
-      res.writeHead(200, {
-        "Content-Type": "image/svg+xml",
-        "Access-Control-Allow-Origin": "*"
-      });
-      res.end(svgContent);
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error(err);
-      res.writeHead(404);
-      res.end("Not Found");
-    }
+  if (req.url === "/api/levels-index") {
+    const songsDir = path.join(__dirname, "src", "levels");
+    const levels = buildLevelIndexFromSongsDir(songsDir);
+    res.writeHead(200, {
+      "Content-Type": "application/json; charset=utf-8",
+      "Access-Control-Allow-Origin": "*",
+      "Cache-Control": "no-store"
+    });
+    res.end(JSON.stringify({ levels }));
     return;
   }
 
   let filePath = req.url === "/" ? "/index.html" : req.url;
+  if (/^\/level\/\d+\/?$/.test(filePath)) {
+    filePath = "/index.html";
+  }
   let fullPath = path.join(__dirname, filePath);
 
   if (!fullPath.startsWith(__dirname)) {
@@ -85,7 +106,6 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // If the path is a directory, try to serve its index.html
   try {
     if (fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory()) {
       fullPath = path.join(fullPath, "index.html");

@@ -1,0 +1,144 @@
+{
+  "mode": {
+    "gameMode": "stage",
+    "defaultPlayMode": "mouse",
+    "countryLookupEnabled": false
+  },
+  "input": {
+    "tapHoldMs": 260,
+    "activeFadeMs": 200,
+    "directions": ["UP", "RIGHT", "DOWN", "LEFT", "MIDDLE"]
+  },
+  "motion": {
+    "targetFrames": 18,
+    "stride": 4,
+    "enterDiffThreshold": 24,
+    "exitDiffThreshold": 18,
+    "minPct": 0.1,
+    "offPct": 0.065,
+    "emaAlpha": 0.2,
+    "bgLearnAlpha": 0.05,
+    "bgLearnAlphaFg": 0.002,
+    "activeHoldMs": 300,
+    "middleTopIgnore": 0.35
+  },
+  "visual": {
+    "colors": {
+      "UP": "#cc3333",
+      "RIGHT": "#3366cc",
+      "DOWN": "#339966",
+      "LEFT": "#999900",
+      "MIDDLE": "#999999"
+    },
+    "fillColors": {
+      "UP": "rgba(204,51,51,0.10)",
+      "RIGHT": "rgba(51,102,204,0.10)",
+      "DOWN": "rgba(51,153,102,0.10)",
+      "LEFT": "rgba(153,153,0,0.10)",
+      "MIDDLE": "rgba(153,153,153,0.10)"
+    },
+    "activeFillColors": {
+      "UP": "rgba(204,51,51,0.50)",
+      "RIGHT": "rgba(51,102,204,0.50)",
+      "DOWN": "rgba(51,153,102,0.50)",
+      "LEFT": "rgba(153,153,0,0.50)",
+      "MIDDLE": "rgba(153,153,153,0.50)"
+    },
+    "powerColors": {
+      "UP": "#9D4EDD",
+      "RIGHT": "#9D4EDD",
+      "DOWN": "#9D4EDD",
+      "LEFT": "#9D4EDD",
+      "MIDDLE": "#9D4EDD"
+    },
+    "powerFillColors": {
+      "UP": "rgba(157,78,221,0.20)",
+      "RIGHT": "rgba(157,78,221,0.20)",
+      "DOWN": "rgba(157,78,221,0.20)",
+      "LEFT": "rgba(157,78,221,0.20)",
+      "MIDDLE": "rgba(157,78,221,0.20)"
+    },
+    "powerActiveFillColors": {
+      "UP": "rgba(157,78,221,0.50)",
+      "RIGHT": "rgba(157,78,221,0.50)",
+      "DOWN": "rgba(157,78,221,0.50)",
+      "LEFT": "rgba(157,78,221,0.50)",
+      "MIDDLE": "rgba(157,78,221,0.50)"
+    },
+    "defaults": {
+      "popupColor": "#ffffff",
+      "captureColor": "#00ffd5"
+    }
+  },
+  "song": {
+    "defaultInstrument": "piano",
+    "spawnIntervalMs": 550,
+    "songTickMs": 10,
+    "hitAssistWindowMs": 750,
+    "targetHitGraceMs": 180,
+    "songCompleteReadyDelayMs": 2000
+  },
+  "audio": {
+    "masterGain": 0.35
+  },
+  "state": {
+    "initialGameState": "title",
+    "levelBannerMs": 3000,
+    "countdownMs": 3000,
+    "levelCompletePauseMs": 4000
+  },
+  "levels": {
+    "startLevel": 1,
+    "maxLevel": 20
+  },
+  "scoring": {
+    "defaultInitials": "DAV",
+    "basePerNote": 1,
+    "streakStepEvery": 8,
+    "streakStepAmount": 1,
+    "maxPerNote": 888,
+    "forceModeThreshold": 22,
+    "powerModeLabel": "PHANTOM PHASE",
+    "powerModeLabelFadeMs": 5000,
+    "scorePulseMs": 650,
+    "scorePopupGrowthScale": 1.4,
+    "scorePopupVerticalDriftScale": 0.5,
+    "scorePopupHorizontalDriftScale": 0.7
+  },
+  "render": {
+    "targetBoxStrokeWidth": 6,
+    "noteStrokeWidth": 4,
+    "noteUpcomingOpacityStep": 0.2,
+    "noteMinUpcomingOpacity": 0.1,
+    "noteMaxUpcomingOpacity": 1.0
+  },
+  "captureEffects": {
+    "durationMs": 280,
+    "noteScaleDurationFactor": 2,
+    "noteMaxScale": 2.4,
+    "strokeWidth": 8,
+    "blurScale": 2.5,
+    "startRadiusScale": 2.4,
+    "endRadiusScale": 1.4,
+    "lineWidthScale": 0.06,
+    "wavePeak": 0.92,
+    "waveValley": 0.08,
+    "alphaScale": 0.4
+  },
+  "dev": {
+    "autoPostHitGraceMs": 140,
+    "defaultRecordTarget": "NONE"
+  },
+  "geo": {
+    "defaultCountryCode": "XX",
+    "defaultCountryName": "Unknown"
+  },
+  "profile": {
+    "unknownOs": "Unknown",
+    "unknownBrowser": "Unknown"
+  },
+  "misses": {
+    "maxMissDots": 4,
+    "leniencyMs": 1000
+  }
+}

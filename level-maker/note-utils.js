@@ -1,5 +1,5 @@
 // note-utils.js
-// Helper and logic functions for Note Explorer
+// Helper and logic functions for Beep Box Level Maker
 
 // Sort and format note table as specified
 export function sortAndFormatNotesTable(text) {
@@ -9,97 +9,51 @@ export function sortAndFormatNotesTable(text) {
     return x.toFixed(3).replace(/\.?0+$/, "");
   }
 
-  function isSplitLaneFormat(cols) {
-    // | track | instrument | lane | key | ... | velocity | duration | time | [spawn] |
-    return (
-      cols.length >= 8 &&
-      cols[1] &&
-      !cols[1].startsWith("note_") &&
-      /^\d+$/.test(cols[2] || "") &&
-      /^\d+$/.test(cols[3] || "")
-    );
-  }
-
-  function getRowIndexes(cols) {
-    if (isSplitLaneFormat(cols)) {
-      return {
-        instrument: 1,
-        lane: 2,
-        key: 3,
-        vel: 5,
-        dur: 6,
-        time: 7,
-        spawn: 8
-      };
-    }
+  function getRowIndexes() {
     return {
-      instrument: null,
-      lane: null,
-      key: 2,
-      vel: 4,
-      dur: 5,
-      time: 6,
-      spawn: 7
+      instrument: 1,
+      lane: 2,
+      key: 3,
+      vel: 5,
+      dur: 6,
+      time: 7,
+      spawn: 8
     };
   }
 
   function normalizeRowToSplitWithSpawn(cols) {
-    // Returns { cols, idx: {key, vel, dur, time, spawn} } with lane split and spawn present.
     let out = cols.slice();
-    let split = isSplitLaneFormat(out);
-
-    if (!split) {
-      // Old format: | track | note_XX | key | ... | velocity | duration | time |
-      const ev = out[1] || "note_00";
-      const lane = (ev.match(/^note_(\d\d)$/) || [])[1] || "00";
-      out[1] = "piano";
-      out.splice(2, 0, lane);
-      split = true;
-    }
-
-    // Ensure spawn column exists at end (default 1s).
-    // In split format, time is at index 7; if there are only 8 cols, spawn is missing.
     if (out.length === 8) out.push("1");
 
     return { cols: out, idx: getRowIndexes(out) };
   }
 
   const lines = text.split(/\r?\n/);
-  // Remove header rows (lines with non-numeric 3rd column)
   const dataRows = lines.filter((line) => {
     const cols = line
       .replace(/^\||\|$/g, "")
       .split("|")
       .map((s) => s.trim());
     if (cols.length < 7) return false;
-    if (isSplitLaneFormat(cols)) return /^\d+$/.test(cols[3] || "");
-    return /^\d+$/.test(cols[2] || "");
+    return /^\d+$/.test(cols[3] || "");
   });
-  // Parse rows into objects
   const parsed = dataRows.map((line) => {
     const cols = line
       .replace(/^\||\|$/g, "")
       .split("|")
       .map((s) => s.trim());
-    // Normalize event type (old format only)
-    if (cols[1] === "note_on") cols[1] = "note_00";
     const norm = normalizeRowToSplitWithSpawn(cols);
     return {
       raw: norm.cols,
       time: parseFloat(norm.cols[norm.idx.time])
     };
   });
-  // Sort by last column (time)
   parsed.sort((a, b) => a.time - b.time);
-  // Find minimum time value
   const minTime = parsed.length > 0 ? parsed[0].time : 0;
-  // Group by time, add empty line after each group, and shift times
   let out = [];
-  let lastTime = null;
   for (let i = 0; i < parsed.length; ++i) {
     const row = parsed[i];
     const idx = normalizeRowToSplitWithSpawn(row.raw).idx;
-    // Shift the time value in the last column
     let shiftedRaw = row.raw.slice();
     const origVelocity = parseFloat(shiftedRaw[idx.vel]);
     if (!isNaN(origVelocity)) shiftedRaw[idx.vel] = format3(origVelocity);
@@ -114,7 +68,7 @@ export function sortAndFormatNotesTable(text) {
     out.push("| " + shiftedRaw.join(" | ") + " |");
     const next = parsed[i + 1];
     if (!next || next.time !== row.time) {
-      out.push(""); // empty line after group
+      out.push("");
     }
   }
   return out.join("\n");
@@ -144,20 +98,12 @@ export function gatherSongMetadata(text) {
       .split("|")
       .map((s) => s.trim());
     if (cols.length < 7) continue;
-    const isSplit =
-      cols.length >= 8 &&
-      cols[1] &&
-      !cols[1].startsWith("note_") &&
-      /^\d+$/.test(cols[2] || "") &&
-      /^\d+$/.test(cols[3] || "");
-    const keyIdx = isSplit ? 3 : 2;
-    const timeIdx = isSplit ? 7 : 6;
-    if (!/^\d+$/.test(cols[keyIdx] || "")) continue;
-    const midi = parseInt(cols[keyIdx], 10);
+    if (!/^\d+$/.test(cols[3] || "")) continue;
+    const midi = parseInt(cols[3], 10);
     if (!Number.isFinite(midi) || midi < 21 || midi > 108) continue;
     noteCount++;
     tracks.add(cols[0]);
-    const time = parseFloat(cols[timeIdx]);
+    const time = parseFloat(cols[7]);
     if (lastTime === null || time !== lastTime) {
       chordCount++;
       lastTime = time;
@@ -185,24 +131,12 @@ export function parseInput(text) {
       .split("|")
       .map((s) => s.trim());
     if (cols.length < 7) continue;
-    const isSplit =
-      cols.length >= 8 &&
-      cols[1] &&
-      !cols[1].startsWith("note_") &&
-      /^\d+$/.test(cols[2] || "") &&
-      /^\d+$/.test(cols[3] || "");
-    const instrumentIdx = isSplit ? 1 : null;
-    const keyIdx = isSplit ? 3 : 2;
-    const durIdx = isSplit ? 6 : 5;
-    const timeIdx = isSplit ? 7 : 6;
-    if (!/^\d+$/.test(cols[keyIdx] || "")) continue;
-    const midi = parseInt(cols[keyIdx], 10); // MIDI note number
-    // For piano range, accept A0 (21) through C8 (108). Ignore out of range.
+    if (!/^\d+$/.test(cols[3] || "")) continue;
+    const midi = parseInt(cols[3], 10);
     if (midi < 21 || midi > 108) continue;
-    const duration = parseFloat(cols[durIdx]);
-    const start = parseFloat(cols[timeIdx]);
-    const instrument =
-      instrumentIdx !== null ? cols[instrumentIdx] || "piano" : "piano";
+    const duration = parseFloat(cols[6]);
+    const start = parseFloat(cols[7]);
+    const instrument = cols[1] || "piano";
     if (!isNaN(midi) && !isNaN(duration) && !isNaN(start)) {
       notes.push({ midi, duration, start, instrument, lineIdx: i, raw: line });
       rowLineMap.push(i);
@@ -256,25 +190,11 @@ export function insertNotesForChords(text, options = {}) {
   const parsedRows = [];
   const notes = [];
 
-  function isSplitLaneFormat(cols) {
-    return (
-      cols.length >= 8 &&
-      cols[1] &&
-      !cols[1].startsWith("note_") &&
-      /^\d+$/.test(cols[2] || "") &&
-      /^\d+$/.test(cols[3] || "")
-    );
-  }
-
   function setRowLane(row, laneNumber) {
     if (!row || !row.cols || row.cols.length < 2) return;
     const laneStr = String(laneNumber).padStart(2, "0");
-    if (isSplitLaneFormat(row.cols)) {
-      row.cols[1] = row.cols[1] || "piano";
-      row.cols[2] = laneStr;
-    } else {
-      row.cols[1] = `note_${laneStr}`;
-    }
+    row.cols[1] = row.cols[1] || "piano";
+    row.cols[2] = laneStr;
   }
 
   for (let i = 0; i < lines.length; i++) {
@@ -285,19 +205,10 @@ export function insertNotesForChords(text, options = {}) {
       .map((s) => s.trim());
     parsedRows.push({ cols, original: line });
     if (cols.length < 7) continue;
-    // Support both lane formats; key is MIDI note number.
-    const isSplit =
-      cols.length >= 8 &&
-      cols[1] &&
-      !cols[1].startsWith("note_") &&
-      /^\d+$/.test(cols[2] || "") &&
-      /^\d+$/.test(cols[3] || "");
-    const keyIdx = isSplit ? 3 : 2;
-    const timeIdx = isSplit ? 7 : 6;
-    if (!/^\d+$/.test(cols[keyIdx] || "")) continue;
-    const midi = parseInt(cols[keyIdx], 10);
+    if (!/^\d+$/.test(cols[3] || "")) continue;
+    const midi = parseInt(cols[3], 10);
     if (!Number.isFinite(midi) || midi < 21 || midi > 108) continue;
-    const time = parseFloat(cols[timeIdx]);
+    const time = parseFloat(cols[7]);
     if (!Number.isFinite(midi) || !Number.isFinite(time)) continue;
     notes.push({ lineIdx: i, midi, time });
   }
@@ -448,19 +359,9 @@ export function clearInsertedNotes(text) {
       .split("|")
       .map((s) => s.trim());
     if (cols.length < 2) return line;
-    const isSplit =
-      cols.length >= 8 &&
-      cols[1] &&
-      !cols[1].startsWith("note_") &&
-      /^\d+$/.test(cols[2] || "") &&
-      /^\d+$/.test(cols[3] || "");
-    if (isSplit) {
-      cols[1] = cols[1] || "piano";
-      cols[2] = "00";
-    } else if (cols[1]?.startsWith("note_")) {
-      cols[1] = "note_00";
-    }
     if (cols.length < 7) return line;
+    cols[1] = cols[1] || "piano";
+    cols[2] = "00";
     return "| " + cols.join(" | ") + " |";
   });
   return out.join("\n");
