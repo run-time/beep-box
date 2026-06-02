@@ -1,11 +1,12 @@
 {
   "name": "beep-box",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "An open source chiptune player",
   "type": "module",
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
+    "build": "node scripts/build-vercel.mjs",
     "lint": "eslint . --ext .js",
     "lint:fix": "eslint . --ext .js --fix",
     "format": "prettier --check .",
