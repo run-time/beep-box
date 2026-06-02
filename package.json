@@ -10,8 +10,7 @@
     "lint:fix": "eslint . --ext .js --fix",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
-    "verify": "npm run lint && npm run format",
-    "build": "echo 'No build needed'"
+    "verify": "npm run lint && npm run format"
   },
   "devDependencies": {
     "eslint": "^10.3.0",
