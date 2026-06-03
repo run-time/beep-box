@@ -101,47 +101,6 @@
         align-items: stretch;
       }
 
-      #lanePreview {
-        width: 400px;
-        height: 300px;
-        border: 4px solid #444;
-        border-radius: 8px;
-        position: relative;
-        overflow: hidden;
-        background:
-          linear-gradient(#222, #222) padding-box,
-          radial-gradient(
-            circle at 20% 20%,
-            rgba(255, 255, 255, 0.08),
-            transparent 50%
-          ),
-          radial-gradient(
-            circle at 80% 80%,
-            rgba(255, 255, 255, 0.06),
-            transparent 55%
-          );
-      }
-
-      .previewDot {
-        width: 16px;
-        height: 16px;
-        border-radius: 12px;
-        position: absolute;
-        transform: translate(-50%, -50%);
-        border: 2px solid rgba(255, 255, 255, 0.75);
-        box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.3);
-      }
-
-      .previewTarget {
-        width: 24px;
-        height: 24px;
-        left: 50%;
-        top: 50%;
-        border-radius: 0;
-        border-width: 4px;
-        opacity: 0.7;
-      }
-
       #laneInfo {
         margin-top: 8px;
         font-size: 12px;
@@ -328,12 +287,6 @@
               justify-content: flex-start;
             "
           >
-            <div>
-              <div id="lanePreview"></div>
-              <div id="laneInfo">
-                Select a note row to preview/edit its lane.
-              </div>
-            </div>
             <div
               style="
                 padding: 0 16px;
@@ -1559,36 +1512,16 @@
       }
 
       function renderLanePreview(lane) {
-        const preview = document.getElementById("lanePreview");
         const info = document.getElementById("laneInfo");
-        if (!preview || !info) return;
-        preview.innerHTML = "";
+        if (!info) return;
         const desc = laneDescriptor(lane);
         info.textContent = desc.label;
-        if (!desc.from || !desc.to) return;
-
-        const dotFrom = document.createElement("div");
-        dotFrom.className = "previewDot";
-        dotFrom.style.left = desc.from.x + "%";
-        dotFrom.style.top = desc.from.y + "%";
-        dotFrom.style.background = desc.color;
-        dotFrom.classList.add("previewStart");
-        preview.appendChild(dotFrom);
-
-        const dotTo = document.createElement("div");
-        dotTo.className = "previewDot";
-        dotTo.style.left = desc.to.x + "%";
-        dotTo.style.top = desc.to.y + "%";
-        dotTo.style.background = desc.color;
-        dotTo.classList.add("previewTarget");
-        preview.appendChild(dotTo);
       }
 
       function renderLanePreviewForPlayingLine(line) {
         const lane = getLaneFromLine(line);
-        const preview = document.getElementById("lanePreview");
         const info = document.getElementById("laneInfo");
-        if (!preview || !info) return;
+        if (!info) return;
         renderLanePreview(lane);
         const desc = laneDescriptor(lane);
         info.innerHTML = `<strong>Playing:</strong> ${desc.label}`;
