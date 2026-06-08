@@ -14,6 +14,7 @@ await rm(publicDir, { recursive: true, force: true });
 await mkdir(publicDir, { recursive: true });
 
 await copyPath(join(rootDir, "index.html"), join(publicDir, "index.html"));
+await copyPath(join(rootDir, "favicon.ico"), join(publicDir, "favicon.ico"));
 await copyPath(join(rootDir, "src"), join(publicDir, "src"));
 await copyPath(
   join(rootDir, "node_modules/ua-parser-js"),
