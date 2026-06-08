@@ -37,6 +37,14 @@
     {
       "source": "/level-maker/:path*",
       "destination": "/level-maker/:path*"
+    },
+    {
+      "source": "/src/level-maker",
+      "destination": "/src/level-maker/index.html"
+    },
+    {
+      "source": "/src/level-maker/:path*",
+      "destination": "/src/level-maker/:path*"
     }
   ]
 }
