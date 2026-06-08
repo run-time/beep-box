@@ -1,14 +1,13 @@
 {
   "name": "beep-box",
-  "version": "0.0.2",
+  "version": "0.0.1",
   "description": "An open source chiptune player",
   "type": "module",
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "build": "node scripts/build-vercel.mjs",
-    "lint": "eslint src server.js scripts --ext .js --ignore-pattern src/vendor/ua-parser.js",
-    "lint:fix": "eslint src server.js scripts --ext .js --ignore-pattern src/vendor/ua-parser.js --fix",
+    "lint": "eslint src server.js --ext .js --ignore-pattern src/vendor/ua-parser.js",
+    "lint:fix": "eslint src server.js --ext .js --ignore-pattern src/vendor/ua-parser.js --fix",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
     "verify": "npm run lint && npm run format"
@@ -18,8 +17,6 @@
     "prettier": "^3.8.3"
   },
   "dependencies": {
-    "@stellarogs/tonejs-instruments": "^1.0.0",
-    "tone": "^15.1.22",
     "ua-parser-js": "^2.0.10"
   }
 }

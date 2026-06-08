@@ -32,9 +32,16 @@
       }
     </style>
 
-    <script src="https://unpkg.com/tone@next/build/Tone.js"></script>
-    <script src="https://nbrosowsky.github.io/tonejs-instruments/Tonejs-Instruments.js"></script>
-    
+    <script type="importmap">
+      {
+        "imports": {
+          "tone": "https://unpkg.com/tone@15.1.22/build/esm/index.js",
+          "@stellarogs/tonejs-instruments": "https://nbrosowsky.github.io/tonejs-instruments/Tonejs-Instruments.js",
+          "ua-parser-js": "/src/vendor/ua-parser.js"
+        }
+      }
+    </script>
+
     <script type="module" src="./src/game/beep-box.js"></script>
   </head>
 
