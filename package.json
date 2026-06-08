@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
+    "build": "node scripts/build-vercel.mjs",
     "lint": "eslint src server.js --ext .js --ignore-pattern src/vendor/ua-parser.js",
     "lint:fix": "eslint src server.js --ext .js --ignore-pattern src/vendor/ua-parser.js --fix",
     "format": "prettier --check .",
