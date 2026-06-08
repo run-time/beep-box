@@ -280,6 +280,24 @@
               style="width: 400px; height: 300px"
             ></canvas>
           </div>
+          <div
+            style="
+              display: flex;
+              flex-direction: row;
+              justify-content: flex-start;
+            "
+          >
+            <div
+              style="
+                padding: 0 16px;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+              "
+            >
+              <div id="laneButtons"></div>
+            </div>
+          </div>
         </div>
       </div>
     </details>
@@ -687,18 +705,10 @@
       </div>
     </details>
 
-    <script type="importmap">
-      {
-        "imports": {
-          "tone": "/node_modules/tone/build/esm/index.js",
-          "@stellarogs/tonejs-instruments": "/node_modules/@stellarogs/tonejs-instruments/Tonejs-Instruments.js",
-          "ua-parser-js": "/src/vendor/ua-parser.js"
-        }
-      }
-    </script>
+    <script src="https://unpkg.com/tone@next/build/Tone.js"></script>
+    <script src="https://nbrosowsky.github.io/tonejs-instruments/Tonejs-Instruments.js"></script>
 
     <script type="module">
-      import "../vendor/audio-libs.js";
       import {
         sortAndFormatNotesTable,
         midiToFreq,
